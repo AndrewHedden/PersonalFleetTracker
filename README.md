@@ -2,7 +2,7 @@
 
 A personal fleet tracker: log fuel and maintenance for the vehicles you own, get reminders before routine maintenance comes due. Web app + native iOS companion, deployed on AWS.
 
-> Status: **Phase 0** — repo skeleton. No application code yet.
+> Status: **Phase 1** — data model defined (Drizzle schema + migrations). No infra deployed yet.
 
 ## Features (planned)
 
@@ -36,6 +36,7 @@ Designed to stay inside the AWS Free Tier wherever possible.
 ├── ios/                # Xcode project (Phase 4)
 ├── infra/              # SST app (Phase 2)
 ├── packages/
+│   ├── db/             # Drizzle schema, queries, migrations
 │   ├── shared/         # Shared TS types / Zod schemas / API contract
 │   └── api/            # Lambda handlers
 ├── .github/workflows/  # CI
@@ -81,7 +82,7 @@ pnpm dev           # parallel dev servers (filled in once web/api exist)
 | Phase | Scope                                                                                                            |
 | ----- | ---------------------------------------------------------------------------------------------------------------- |
 | **0** | ✅ Repo skeleton, pnpm workspaces, lint/format/typecheck/CI scaffolding, Node pinning                            |
-| 1     | Drizzle schema: `users`, `vehicles`, `fuel_entries`, `maintenance_entries`, `maintenance_tasks`, `_schedules`    |
+| **1** | ✅ Drizzle schema (`users`, `vehicles`, `fuel_entries`, 4 × `maintenance_*`), initial migration, seeded task catalog |
 | 2     | SST stacks: Cognito user pool, RDS Postgres, API Gateway + Lambda, Next.js site                                  |
 | 3     | First end-to-end vertical slice: Vehicles CRUD (schema → Lambda → Next.js login-gated page)                      |
 | 4     | iOS app shell: SwiftUI scaffold, Amplify Swift + Cognito sign-in, vehicles list against the same API             |
