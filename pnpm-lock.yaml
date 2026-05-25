@@ -15,9 +15,40 @@ importers:
         specifier: ^5.6.3
         version: 5.9.3
 
-  infra: {}
+  infra:
+    dependencies:
+      '@pft/db':
+        specifier: workspace:*
+        version: link:../packages/db
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.1
+        version: 22.19.19
+      sst:
+        specifier: 3.5.3
+        version: 3.5.3
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
 
-  packages/api: {}
+  packages/api:
+    dependencies:
+      '@pft/db':
+        specifier: workspace:*
+        version: link:../db
+      sst:
+        specifier: 3.5.3
+        version: 3.5.3
+    devDependencies:
+      '@types/aws-lambda':
+        specifier: ^8.10.146
+        version: 8.10.161
+      '@types/node':
+        specifier: ^22.10.1
+        version: 22.19.19
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
 
   packages/db:
     dependencies:
@@ -335,11 +366,20 @@ packages:
   '@petamoriken/float16@3.9.3':
     resolution: {integrity: sha512-8awtpHXCx/bNpFt4mt2xdkgtgVvKqty8VbjHI/WWWQuEw+KLzFot3f4+LkQY9YmOtq7A5GdOnqoIC8Pdygjk2g==}
 
+  '@types/aws-lambda@8.10.161':
+    resolution: {integrity: sha512-rUYdp+MQwSFocxIOcSsYSF3YYYC/uUpMbCY/mbO21vGqfrEYvNSoPyKYDj6RhXXpPfS0KstW9RwG3qXh9sL7FQ==}
+
+  '@types/node@22.19.19':
+    resolution: {integrity: sha512-dyh/xO2Fh5bYrfWaaqGrRQQGkNdmYw6AmaAUvYeUMNTWQtvb796ikLdmTchRmOlOiIJ1TDXfWgVx1QkUlQ6Hew==}
+
   '@types/node@25.9.1':
     resolution: {integrity: sha512-xfrlY7UD5rMJk3ZVJP8BNzS28J36YJg+xp+LPXV1TdWxr8uMH5A860QNxYDGQe/ylDSgjxE52Q9VnO7p75tJxg==}
 
   '@types/pg@8.20.0':
     resolution: {integrity: sha512-bEPFOaMAHTEP1EzpvHTbmwR8UsFyHSKsRisLIHVMXnpNefSbGA1bD6CVy+qKjGSqmZqNqBDV2azOBo8TgkcVow==}
+
+  aws4fetch@1.0.20:
+    resolution: {integrity: sha512-/djoAN709iY65ETD6LKCtyyEI04XIBP5xVvfmNxsEP0uJB5tyaGBztSryRr4HqMStr9R06PisQE7m9zDTXKu6g==}
 
   buffer-from@1.1.2:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
@@ -484,8 +524,29 @@ packages:
     resolution: {integrity: sha512-6B3tLtFqtQS4ekarvLVMZ+X+VlvQekbe4taUkf/rhVO3d/h0M2rfARm/pXLcPEsjjMsFgrFgSrhQIxcSVrBz8w==}
     engines: {node: '>=18'}
 
+  jose@4.15.9:
+    resolution: {integrity: sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA==}
+
+  jose@5.2.3:
+    resolution: {integrity: sha512-KUXdbctm1uHVL8BYhnyHkgp3zDX5KW8ZhAKVFEfUbU2P8Alpzjb+48hHvjOdQIyPshoblhzsuqOwEEAbtHVirA==}
+
+  lru-cache@6.0.0:
+    resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
+    engines: {node: '>=10'}
+
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
+
+  object-hash@2.2.0:
+    resolution: {integrity: sha512-gScRMn0bS5fH+IuwyIFgnh9zBdo4DV+6GhygmWM9HyNJSgS0hScp1f5vjtm7oIIOiT9trXrShAkLFSc2IqKNgw==}
+    engines: {node: '>= 6'}
+
+  oidc-token-hash@5.2.0:
+    resolution: {integrity: sha512-6gj2m8cJZ+iSW8bm0FXdGF0YhIQbKrfP4yWTNzxc31U6MOjfEmB1rHvlYvxI1B7t7BCi1F2vYTT6YhtQRG4hxw==}
+    engines: {node: ^10.13.0 || >=12.0.0}
+
+  openid-client@5.6.4:
+    resolution: {integrity: sha512-T1h3B10BRPKfcObdBklX639tVz+xh34O7GjofqrqiAQdm7eHsQ00ih18x6wuJ/E6FxdtS2u3FmUGPDeEcMwzNA==}
 
   pg-cloudflare@1.4.0:
     resolution: {integrity: sha512-Vo7z/6rrQYxpNRylp4Tlob2elzbh+N/MOQbxFVWCxS7oEx6jF53GTJFxK2WWpKuBRkmiin4Mt+xofFDjx09R0A==}
@@ -565,10 +626,50 @@ packages:
     resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
     engines: {node: '>= 10.x'}
 
+  sst-darwin-arm64@3.5.3:
+    resolution: {integrity: sha512-LUtDuDMQKO9uUCcxhJakV9L02Kh/dDKaJ6HS4W7M1/qK7HQY653ktv4kSpMG7zaWk8r0MDPelQHm2KN9gg0XmQ==}
+    cpu: [arm64]
+    os: [darwin]
+
+  sst-darwin-x64@3.5.3:
+    resolution: {integrity: sha512-bM97o6XtGRdgEzIFyCgayk7UO+hcFHz8uhiWQNAdXFp6jNaweSWjHZ8f7ldyXUMG5wdJngm4Q3GHfaEbH+JRSA==}
+    cpu: [x64]
+    os: [darwin]
+
+  sst-linux-arm64@3.5.3:
+    resolution: {integrity: sha512-7hFrITuXhdmVB8dgkxarYiTYRSGYg+4lbH4GS4VdKLUN5Z21NErv6P9FDnrPkokPMti0lLdRxvLn0QdzHMArKA==}
+    cpu: [arm64]
+    os: [linux]
+
+  sst-linux-x64@3.5.3:
+    resolution: {integrity: sha512-8LIy3SdfIj39bsz4TtpZrVccKCLdlGXMvZAsDNatdz+smCoZ7869KkhEAHi3zN1i2a4CyFaYDcEEstBokkzzjw==}
+    cpu: [x64]
+    os: [linux]
+
+  sst-linux-x86@3.5.3:
+    resolution: {integrity: sha512-cnU/oFwYcJHjwN1TCiwhM5TZKSWIwqPktGmmB0kIAsWE/mrxy3Ng40xNuekid1Nha4z2UxJTa4tvgp892B2y5Q==}
+    cpu: [x86]
+    os: [linux]
+
+  sst@3.5.3:
+    resolution: {integrity: sha512-fQg08JkI0meQ8b0WR8EvzZVrd0fR6fcnqKDYf9tztyVkCxfth0XKUoJaEz1NI93DjRLaTiCSLBbIJqfONhUjKw==}
+    hasBin: true
+    peerDependencies:
+      hono: 4.x
+      valibot: 0.30.x
+    peerDependenciesMeta:
+      hono:
+        optional: true
+      valibot:
+        optional: true
+
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
     hasBin: true
+
+  undici-types@6.21.0:
+    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
   undici-types@7.24.6:
     resolution: {integrity: sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg==}
@@ -581,6 +682,9 @@ packages:
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
     engines: {node: '>=0.4'}
+
+  yallist@4.0.0:
+    resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
 
 snapshots:
 
@@ -733,6 +837,12 @@ snapshots:
 
   '@petamoriken/float16@3.9.3': {}
 
+  '@types/aws-lambda@8.10.161': {}
+
+  '@types/node@22.19.19':
+    dependencies:
+      undici-types: 6.21.0
+
   '@types/node@25.9.1':
     dependencies:
       undici-types: 7.24.6
@@ -742,6 +852,8 @@ snapshots:
       '@types/node': 25.9.1
       pg-protocol: 1.14.0
       pg-types: 2.2.0
+
+  aws4fetch@1.0.20: {}
 
   buffer-from@1.1.2: {}
 
@@ -843,7 +955,26 @@ snapshots:
 
   isexe@3.1.5: {}
 
+  jose@4.15.9: {}
+
+  jose@5.2.3: {}
+
+  lru-cache@6.0.0:
+    dependencies:
+      yallist: 4.0.0
+
   ms@2.1.3: {}
+
+  object-hash@2.2.0: {}
+
+  oidc-token-hash@5.2.0: {}
+
+  openid-client@5.6.4:
+    dependencies:
+      jose: 4.15.9
+      lru-cache: 6.0.0
+      object-hash: 2.2.0
+      oidc-token-hash: 5.2.0
 
   pg-cloudflare@1.4.0:
     optional: true
@@ -907,7 +1038,36 @@ snapshots:
 
   split2@4.2.0: {}
 
+  sst-darwin-arm64@3.5.3:
+    optional: true
+
+  sst-darwin-x64@3.5.3:
+    optional: true
+
+  sst-linux-arm64@3.5.3:
+    optional: true
+
+  sst-linux-x64@3.5.3:
+    optional: true
+
+  sst-linux-x86@3.5.3:
+    optional: true
+
+  sst@3.5.3:
+    dependencies:
+      aws4fetch: 1.0.20
+      jose: 5.2.3
+      openid-client: 5.6.4
+    optionalDependencies:
+      sst-darwin-arm64: 3.5.3
+      sst-darwin-x64: 3.5.3
+      sst-linux-arm64: 3.5.3
+      sst-linux-x64: 3.5.3
+      sst-linux-x86: 3.5.3
+
   typescript@5.9.3: {}
+
+  undici-types@6.21.0: {}
 
   undici-types@7.24.6: {}
 
@@ -916,3 +1076,5 @@ snapshots:
       isexe: 3.1.5
 
   xtend@4.0.2: {}
+
+  yallist@4.0.0: {}

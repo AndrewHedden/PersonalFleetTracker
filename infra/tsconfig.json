@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "moduleResolution": "Bundler",
+    "types": ["node"],
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    // SST's platform source uses looser TS settings than our base config.
+    // We rely on `sst diff` for real validation; tsc just covers our authored
+    // files surface-level.
+    "noUncheckedIndexedAccess": false,
+    "strict": false,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*", "../sst.config.ts"]
+}
