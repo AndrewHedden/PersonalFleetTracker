@@ -2,7 +2,7 @@
 
 A personal fleet tracker: log fuel and maintenance for the vehicles you own, get reminders before routine maintenance comes due. Web app + native iOS companion, deployed on AWS.
 
-> Status: **Phase 2** — SST infrastructure code complete. Nothing deployed to AWS yet.
+> Status: **Phase 3a** — Next.js 16 scaffold integrated into the workspace. Nothing deployed to AWS yet.
 
 ## Features (planned)
 
@@ -128,7 +128,9 @@ pnpm --filter @pft/infra sst:remove --stage andrew
 | **0** | ✅ Repo skeleton, pnpm workspaces, lint/format/typecheck/CI scaffolding, Node pinning                            |
 | **1** | ✅ Drizzle schema (`users`, `vehicles`, `fuel_entries`, 4 × `maintenance_*`), initial migration, seeded task catalog |
 | **2** | ✅ SST v3 stacks: VPC (no NAT), RDS Postgres `t4g.micro`, Cognito user pool + client, API Gateway HTTP API + Lambda, Next.js site |
-| 3     | First end-to-end vertical slice: Vehicles CRUD (schema → Lambda → Next.js login-gated page)                      |
+| **3a** | ✅ Next.js 16 (App Router, TS, Tailwind v4, ESLint, Turbopack) scaffolded into the workspace as `@pft/web` |
+| 3b    | shadcn/ui + Cognito sign-in (web)                                                                                |
+| 3c    | First end-to-end vertical slice: Vehicles CRUD (schema → Lambda → Next.js login-gated page)                      |
 | 4     | iOS app shell: SwiftUI scaffold, Amplify Swift + Cognito sign-in, vehicles list against the same API             |
 | 5     | Fuel + maintenance entry flows; reminders engine                                                                 |
 | 6     | Receipt photos (S3 presigned uploads); polish; TestFlight                                                        |
