@@ -1,0 +1,9 @@
+{
+  "name": "@pft/infra",
+  "version": "0.0.0",
+  "private": true,
+  "description": "SST v3 infrastructure: Cognito, RDS Postgres, API Gateway + Lambda, Next.js hosting.",
+  "scripts": {
+    "typecheck": "echo 'infra: not yet scaffolded'"
+  }
+}

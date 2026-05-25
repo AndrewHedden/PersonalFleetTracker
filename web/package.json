@@ -1,0 +1,9 @@
+{
+  "name": "@pft/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Next.js web app for PersonalFleetTracker. Scaffolded in Phase 3.",
+  "scripts": {
+    "typecheck": "echo 'web: not yet scaffolded'"
+  }
+}

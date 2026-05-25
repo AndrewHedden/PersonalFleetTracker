@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# SST / CDK / AWS
+.sst/
+.open-next/
+cdk.out/
+.aws-sam/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.envrc
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors / IDEs
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+
+# Xcode (iOS)
+ios/build/
+ios/DerivedData/
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/xcuserdata/
+ios/Pods/
+ios/.swiftpm/
+
+# Test / coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Misc
+.turbo/
+.cache/
+.eslintcache

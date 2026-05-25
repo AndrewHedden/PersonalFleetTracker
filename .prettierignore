@@ -1,0 +1,12 @@
+node_modules
+dist
+build
+.next
+out
+.sst
+.open-next
+cdk.out
+coverage
+pnpm-lock.yaml
+ios/
+*.md

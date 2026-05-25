@@ -1,0 +1,24 @@
+{
+  "name": "personal-fleet-tracker",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Multi-vehicle fuel and maintenance tracker. Next.js web + SwiftUI iOS, deployed to AWS via SST.",
+  "packageManager": "pnpm@11.3.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=11.0.0"
+  },
+  "scripts": {
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "build": "pnpm -r --if-present build",
+    "dev": "pnpm -r --if-present --parallel dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3"
+  }
+}
