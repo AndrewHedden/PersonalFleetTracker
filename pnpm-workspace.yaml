@@ -2,3 +2,8 @@ packages:
   - 'web'
   - 'infra'
   - 'packages/*'
+
+# Explicit allowlist for native build scripts (pnpm >=10 requires this).
+# Keep this list short and audited.
+allowBuilds:
+  esbuild: true
