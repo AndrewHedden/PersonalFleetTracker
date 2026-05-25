@@ -2,7 +2,7 @@
 
 A personal fleet tracker: log fuel and maintenance for the vehicles you own, get reminders before routine maintenance comes due. Web app + native iOS companion, deployed on AWS.
 
-> Status: **Phase 1** — data model defined (Drizzle schema + migrations). No infra deployed yet.
+> Status: **Phase 2** — SST infrastructure code complete. Nothing deployed to AWS yet.
 
 ## Features (planned)
 
@@ -77,13 +77,57 @@ pnpm format:check  # prettier --check . (used by CI)
 pnpm dev           # parallel dev servers (filled in once web/api exist)
 ```
 
+## Infrastructure
+
+SST v3 defines all infra in TypeScript at the project root (`sst.config.ts`), with
+per-concern stack files in [`infra/src/`](infra/src/):
+
+| File                              | What lives here                                            |
+| --------------------------------- | ---------------------------------------------------------- |
+| [`infra/src/storage.ts`](infra/src/storage.ts) | VPC (no NAT) + RDS Postgres `t4g.micro` single-AZ |
+| [`infra/src/auth.ts`](infra/src/auth.ts)       | Cognito user pool + app client                    |
+| [`infra/src/api.ts`](infra/src/api.ts)         | API Gateway HTTP API + JWT authorizer + Lambdas   |
+| [`infra/src/web.ts`](infra/src/web.ts)         | Next.js site (SSR on Lambda + CloudFront)         |
+
+### Cost posture
+
+The stack is engineered to stay inside the AWS Free Tier for the first 12 months:
+
+- **No NAT Gateway** (~$32/mo avoided). Lambdas live in the same VPC as RDS and don't call out to the public internet. Cognito JWT verification happens at API Gateway, so Lambda handlers receive pre-verified claims and never hit Cognito JWKS over the network.
+- **RDS `db.t4g.micro` single-AZ** with 20 GB gp2 storage — exactly what the 12-month free tier covers.
+- **API Gateway HTTP API**, not REST API — cheaper after free tier expires and free for the first 12 months.
+- **Cognito** is free up to 50k MAU forever.
+- **CloudFront** stays inside the "always free" tier (1 TB out + 10M req/mo).
+- **`sst remove` is enabled for non-`production` stages**, so personal dev stacks can be torn down to zero ongoing cost.
+
+If you ever need Lambda → outbound internet (e.g. a third-party API call), prefer adding the specific VPC interface endpoint (~$7/mo) over a NAT Gateway (~$32/mo).
+
+### Working with the stack
+
+```bash
+# (One-time) Download SST platform code
+pnpm --filter @pft/infra exec sst install
+
+# See what would change without applying
+pnpm --filter @pft/infra sst:diff
+
+# Local dev with `sst dev` (live Lambda + tunnel)
+pnpm --filter @pft/infra sst:dev
+
+# Deploy a stage (defaults to your username)
+pnpm --filter @pft/infra sst:deploy --stage andrew
+
+# Tear a stage down
+pnpm --filter @pft/infra sst:remove --stage andrew
+```
+
 ## Roadmap
 
 | Phase | Scope                                                                                                            |
 | ----- | ---------------------------------------------------------------------------------------------------------------- |
 | **0** | ✅ Repo skeleton, pnpm workspaces, lint/format/typecheck/CI scaffolding, Node pinning                            |
 | **1** | ✅ Drizzle schema (`users`, `vehicles`, `fuel_entries`, 4 × `maintenance_*`), initial migration, seeded task catalog |
-| 2     | SST stacks: Cognito user pool, RDS Postgres, API Gateway + Lambda, Next.js site                                  |
+| **2** | ✅ SST v3 stacks: VPC (no NAT), RDS Postgres `t4g.micro`, Cognito user pool + client, API Gateway HTTP API + Lambda, Next.js site |
 | 3     | First end-to-end vertical slice: Vehicles CRUD (schema → Lambda → Next.js login-gated page)                      |
 | 4     | iOS app shell: SwiftUI scaffold, Amplify Swift + Cognito sign-in, vehicles list against the same API             |
 | 5     | Fuel + maintenance entry flows; reminders engine                                                                 |
