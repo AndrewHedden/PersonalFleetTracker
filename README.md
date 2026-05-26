@@ -2,7 +2,7 @@
 
 A personal fleet tracker: log fuel and maintenance for the vehicles you own, get reminders before routine maintenance comes due. Web app + native iOS companion, deployed on AWS.
 
-> Status: **Phase 3a** — Next.js 16 scaffold integrated into the workspace. Nothing deployed to AWS yet.
+> Status: **Phase 3a complete + AWS live.** Web, API, RDS, Cognito, and a one-shot Migrator Lambda are all deployed to the `andrew` stage. Phase 3b (auth UI) and Phase 3c (Vehicles CRUD) are next.
 
 ## Features (planned)
 
