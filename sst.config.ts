@@ -26,6 +26,7 @@ export default $config({
     const { api } = await import('./infra/src/api');
     const { userPool, userPoolClient } = await import('./infra/src/auth');
     const { db } = await import('./infra/src/storage');
+    const { migrator } = await import('./infra/src/migrator');
     // Web is intentionally not deployed via SST yet. SST's `Nextjs` construct
     // uses OpenNext under the hood, and OpenNext currently crashes during the
     // Lambda bundle step on Next.js 16 (esbuild emits a duplicate-key warning
@@ -33,18 +34,13 @@ export default $config({
     // formatter throws `RangeError: Invalid string length`). Until OpenNext
     // catches up, the web app is hosted separately (e.g. AWS Amplify Hosting
     // from the same GitHub repo). See infra/src/web.ts for the disabled config.
-    //
-    // The Drizzle migrator Lambda (infra/src/migrator.ts) is similarly disabled:
-    // adding any combination of `vpc:` + env-var references to `db.*` outputs +
-    // `copyFiles` to a Lambda triggers the same `RangeError`. Until that's
-    // resolved, migrations run from local against a temporarily-public-accessible
-    // RDS instance. See infra/src/migrator.ts for the disabled config.
 
     return {
       api: api.url,
       userPoolId: userPool.id,
       userPoolClientId: userPoolClient.id,
       dbHost: db.host,
+      migratorName: migrator.name,
     };
   },
 });

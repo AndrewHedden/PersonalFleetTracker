@@ -15,7 +15,8 @@
     "build": "pnpm -r --if-present build",
     "dev": "pnpm -r --if-present --parallel dev",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "invoke:migrate": "./scripts/invoke-migrate.sh"
   },
   "devDependencies": {
     "prettier": "^3.3.3",

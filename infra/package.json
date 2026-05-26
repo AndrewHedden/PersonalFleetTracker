@@ -2,10 +2,10 @@
   "name": "@pft/infra",
   "version": "0.0.0",
   "private": true,
-  "description": "SST v3 infrastructure: Cognito, RDS Postgres, API Gateway + Lambda, Next.js hosting.",
+  "description": "SST infrastructure: Cognito, RDS Postgres, API Gateway + Lambda, Migrator Lambda.",
   "type": "module",
   "scripts": {
-    "typecheck": "echo 'infra: typecheck deferred to `sst diff` (SST v3 platform sources are not strict-TS clean)'",
+    "typecheck": "echo 'infra: typecheck deferred to `sst diff` (SST platform sources are not strict-TS clean)'",
     "sst:diff": "sst diff",
     "sst:deploy": "sst deploy",
     "sst:remove": "sst remove",
@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.1",
-    "sst": "3.5.3",
+    "sst": "4.14.3",
     "typescript": "^5.6.3"
   }
 }
