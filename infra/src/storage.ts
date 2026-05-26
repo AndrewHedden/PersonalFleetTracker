@@ -23,6 +23,18 @@ export const db = new sst.aws.Postgres('Db', {
   version: '16.4',
   instance: 't4g.micro',
   storage: '20 GB',
-  // Single-AZ to stay inside the RDS free tier (12-month).
-  // Free tier covers db.t4g.micro single-AZ with 20 GB gp2 storage.
+  transform: {
+    instance: (args) => {
+      // AWS's new credit-based Free Plan rejects RDS instances with any
+      // automated backup retention (the previous 12-month free tier allowed
+      // 7 days). Disable automated backups and skip the final snapshot so
+      // `sst remove` can tear the DB down cleanly. We can take manual
+      // snapshots before risky migrations if we need point-in-time recovery.
+      args.backupRetentionPeriod = 0;
+      args.skipFinalSnapshot = true;
+      // Free Plan also disallows Enhanced Monitoring and Performance Insights.
+      args.monitoringInterval = 0;
+      args.performanceInsightsEnabled = false;
+    },
+  },
 });
