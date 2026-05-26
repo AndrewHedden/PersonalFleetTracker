@@ -14,6 +14,7 @@ out/
 .open-next/
 cdk.out/
 .aws-sam/
+sst-env.d.ts
 
 # Environment
 .env
