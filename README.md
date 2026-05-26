@@ -102,6 +102,33 @@ The stack is engineered to stay inside the AWS Free Tier for the first 12 months
 
 If you ever need Lambda → outbound internet (e.g. a third-party API call), prefer adding the specific VPC interface endpoint (~$7/mo) over a NAT Gateway (~$32/mo).
 
+### Working with migrations (temporary procedure)
+
+Until the SST Lambda-in-VPC deploy bug is resolved (see `infra/src/migrator.ts`), database migrations run from local against a briefly-publicly-accessible RDS instance. The runbook (replace `<stage>` and instance ID):
+
+```bash
+# 1. Open access — IGW route on RDS subnets, RDS public flag, SG ingress for your IP
+MY_IP=$(curl -sS https://checkip.amazonaws.com)
+aws rds modify-db-instance --db-instance-identifier <stage>-dbinstance \
+  --publicly-accessible --apply-immediately --profile pft
+# add 0.0.0.0/0 -> IGW route to each RDS subnet's route table
+# add SG ingress on 5432 for $MY_IP/32
+
+# 2. Pull credentials and run migrations
+SECRET_JSON=$(aws secretsmanager get-secret-value \
+  --secret-id <stage>-DbProxySecret --query SecretString --output text --profile pft)
+DB_USER=$(echo "$SECRET_JSON" | jq -r .username)
+DB_PASS=$(echo "$SECRET_JSON" | jq -r .password)
+DB_PASS_ENCODED=$(jq -rn --arg p "$DB_PASS" '$p|@uri')
+export DATABASE_URL="postgresql://${DB_USER}:${DB_PASS_ENCODED}@<endpoint>:5432/pft?uselibpqcompat=true&sslmode=require"
+pnpm --filter @pft/db db:migrate
+
+# 3. CRITICAL: revert in reverse order
+# revoke SG rule -> RDS --no-publicly-accessible -> delete IGW routes
+```
+
+Migrations are idempotent (Drizzle tracks state in `__drizzle_migrations`), so re-running on each deploy is safe.
+
 ### Working with the stack
 
 ```bash
