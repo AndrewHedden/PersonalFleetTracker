@@ -7,3 +7,5 @@ packages:
 # Keep this list short and audited.
 allowBuilds:
   esbuild: true
+  sharp: true
+  unrs-resolver: true
