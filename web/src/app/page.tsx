@@ -1,4 +1,18 @@
-export default function HomePage() {
+import Link from 'next/link';
+
+import { buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getSession } from '@/lib/session';
+
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ signin?: string }>;
+}) {
+  const session = await getSession();
+  const params = await searchParams;
+  const signinRequired = params?.signin === 'required';
+
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-8 px-6 py-16">
       <header className="flex flex-col gap-3">
@@ -12,20 +26,34 @@ export default function HomePage() {
         </p>
       </header>
 
-      <section className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
-          Build status
-        </h2>
-        <ul className="mt-3 space-y-2 text-sm">
-          <Phase label="0" title="Monorepo skeleton, CI" status="done" />
-          <Phase label="1" title="Drizzle schema + migrations" status="done" />
-          <Phase label="2" title="SST stacks (VPC, RDS, Cognito, API, Next.js)" status="done" />
-          <Phase label="3a" title="Next.js scaffold in workspace" status="current" />
-          <Phase label="3b" title="shadcn/ui + Cognito sign-in" status="pending" />
-          <Phase label="3c" title="Vehicles CRUD vertical slice" status="pending" />
-          <Phase label="4" title="SwiftUI iOS app + Amplify Cognito" status="pending" />
-        </ul>
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {session ? `Signed in as ${session.email ?? session.username}` : 'Get started'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          {signinRequired && !session && (
+            <p className="text-sm text-amber-600 dark:text-amber-500">
+              Please sign in to access that page.
+            </p>
+          )}
+          {session ? (
+            <div className="flex gap-2">
+              <Link href="/dashboard" className={buttonVariants({ variant: 'default' })}>
+                Open dashboard
+              </Link>
+              <Link href="/api/auth/sign-out" className={buttonVariants({ variant: 'outline' })}>
+                Sign out
+              </Link>
+            </div>
+          ) : (
+            <Link href="/api/auth/sign-in" className={buttonVariants({ variant: 'default' })}>
+              Sign in or create an account
+            </Link>
+          )}
+        </CardContent>
+      </Card>
 
       <footer className="text-sm text-zinc-500">
         <a
@@ -38,30 +66,5 @@ export default function HomePage() {
         </a>
       </footer>
     </main>
-  );
-}
-
-type PhaseStatus = 'done' | 'current' | 'pending';
-
-function Phase({ label, title, status }: { label: string; title: string; status: PhaseStatus }) {
-  const dot =
-    status === 'done'
-      ? 'bg-emerald-500'
-      : status === 'current'
-        ? 'bg-amber-500'
-        : 'bg-zinc-300 dark:bg-zinc-700';
-
-  const titleClass =
-    status === 'done' ? 'text-zinc-500' : status === 'current' ? 'font-medium' : 'text-zinc-500';
-
-  const srLabel = status === 'done' ? 'done' : status === 'current' ? 'in progress' : 'pending';
-
-  return (
-    <li className="flex items-center gap-3">
-      <span aria-hidden className={`inline-block h-2 w-2 shrink-0 rounded-full ${dot}`} />
-      <span className="sr-only">{srLabel}</span>
-      <span className="w-8 shrink-0 font-mono text-xs text-zinc-400">{label}</span>
-      <span className={titleClass}>{title}</span>
-    </li>
   );
 }
