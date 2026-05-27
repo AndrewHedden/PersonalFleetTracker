@@ -27,16 +27,11 @@ export default $config({
     const { userPool, userPoolClient } = await import('./infra/src/auth');
     const { db } = await import('./infra/src/storage');
     const { migrator } = await import('./infra/src/migrator');
-    // Web is intentionally not deployed via SST yet. SST's `Nextjs` construct
-    // uses OpenNext under the hood, and OpenNext currently crashes during the
-    // Lambda bundle step on Next.js 16 (esbuild emits a duplicate-key warning
-    // for OpenNext's image-optimization-function so large that Node's error
-    // formatter throws `RangeError: Invalid string length`). Until OpenNext
-    // catches up, the web app is hosted separately (e.g. AWS Amplify Hosting
-    // from the same GitHub repo). See infra/src/web.ts for the disabled config.
+    const { web } = await import('./infra/src/web');
 
     return {
       api: api.url,
+      web: web.url,
       userPoolId: userPool.id,
       userPoolClientId: userPoolClient.id,
       dbHost: db.host,
