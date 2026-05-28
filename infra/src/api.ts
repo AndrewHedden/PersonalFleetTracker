@@ -1,6 +1,7 @@
 /// <reference path="../../.sst/platform/config.d.ts" />
 
 import { userPool, userPoolClient } from './auth';
+import { db, vpc } from './storage';
 
 /**
  * Public REST API consumed by both the web app and the iOS app.
@@ -37,20 +38,34 @@ api.route('GET /v1/health', {
 });
 
 /**
- * Sample authenticated route. Will be replaced by the real Vehicles CRUD
- * routes in Phase 3 — kept now so we exercise the JWT authorizer wiring.
- *
- * Intentionally NOT linked to the DB or placed in the VPC yet: an SST/Pulumi
- * issue triggers a `RangeError: Invalid string length` during deploy when a
- * Lambda is linked to `sst.aws.Postgres` (the link metadata payload is large
- * enough to crash Node's `util.inspect`). We'll re-link as Phase 3c brings in
- * real DB-backed routes and we have a workaround.
+ * Returns the authenticated user's Cognito claims. Useful as a sanity check
+ * that the JWT authorizer is wiring claims through correctly.
  */
 api.route(
   'GET /v1/me',
   {
     handler: 'packages/api/src/handlers/me.handler',
     description: 'Returns the authenticated user',
+  },
+  {
+    auth: { jwt: { authorizer: jwtAuthorizer.id } },
+  },
+);
+
+/**
+ * GET /v1/vehicles — list the authenticated user's vehicles.
+ *
+ * In-VPC + linked to `db` so the handler can reach RDS on its private
+ * endpoint. This is the first DB-backed route — possible thanks to the
+ * SST v4 upgrade (the v3.5 deploy crash on `vpc:` + `link:[db]` is gone).
+ */
+api.route(
+  'GET /v1/vehicles',
+  {
+    handler: 'packages/api/src/handlers/vehicles-list.handler',
+    description: "List the authenticated user's vehicles",
+    vpc,
+    link: [db],
   },
   {
     auth: { jwt: { authorizer: jwtAuthorizer.id } },

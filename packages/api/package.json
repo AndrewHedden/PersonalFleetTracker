@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@stablebook/db": "workspace:*",
+    "@stablebook/shared": "workspace:*",
     "drizzle-orm": "^0.36.4",
     "pg": "^8.13.1",
     "sst": "4.14.3"
