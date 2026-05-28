@@ -1,0 +1,33 @@
+# AWS Amplify Hosting build settings for Stablebook web.
+#
+# Amplify auto-detects Next.js but our monorepo + pnpm setup needs the build
+# rooted at the repo root (to resolve `@stablebook/shared` etc.) while the
+# artifacts come from `web/.next`. The `appRoot: web` block tells Amplify
+# the app lives in /web; we cd back to the repo root for the install step
+# and then back into /web for the build.
+
+version: 1
+applications:
+  - appRoot: web
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - corepack enable
+            - corepack prepare pnpm@11.3.0 --activate
+            - cd "$AMPLIFY_MONOREPO_APP_ROOT/.."
+            - pnpm install --frozen-lockfile
+        build:
+          commands:
+            - cd "$AMPLIFY_MONOREPO_APP_ROOT"
+            - pnpm build
+      artifacts:
+        baseDirectory: .next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+          - .next/cache/**/*
+          - ../node_modules/**/*
+          - ~/.local/share/pnpm/store/v3/**/*

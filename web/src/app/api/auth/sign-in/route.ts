@@ -1,5 +1,5 @@
 import { CodeChallengeMethod, generateCodeVerifier, generateState } from 'arctic';
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
 import { getCognitoUrls, getOAuth2Client } from '@/lib/auth';
 import { getAppUrl } from '@/lib/env';
@@ -21,5 +21,8 @@ export async function GET(request: NextRequest) {
     ['openid', 'email', 'profile'],
   );
 
-  return Response.redirect(authUrl.toString(), 302);
+  // NextResponse.redirect (not Response.redirect) so the PKCE state + verifier
+  // cookies set above land on the response. See callback/route.ts for the
+  // same fix.
+  return NextResponse.redirect(authUrl.toString(), { status: 302 });
 }

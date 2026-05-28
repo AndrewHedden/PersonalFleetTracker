@@ -1,21 +1,95 @@
 'use client';
 
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { CreateVehicleInputSchema } from '@stablebook/shared';
+import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-import { createVehicleAction, type CreateVehicleState } from './actions';
+interface FormState {
+  error?: string;
+  fieldErrors?: Record<string, string[] | undefined>;
+}
 
-const initialState: CreateVehicleState = {};
-
+/**
+ * Client-side form submitting to `/api/vehicles` via fetch.
+ *
+ * We use a Next.js Route Handler instead of a server action because Next 16
+ * server actions over multipart/form-data don't carry the session cookie
+ * through CloudFront/OpenNext in our setup (the Lambda sees an empty Cookie
+ * header). Route handlers receive cookies normally — see task #47.
+ */
 export function VehicleForm() {
-  const [state, action] = useActionState(createVehicleAction, initialState);
+  const router = useRouter();
+  const [state, setState] = useState<FormState>({});
+  const [pending, startTransition] = useTransition();
+
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const fd = new FormData(form);
+
+    const trim = (v: FormDataEntryValue | null) =>
+      typeof v === 'string' && v.trim() !== '' ? v.trim() : undefined;
+    const num = (v: FormDataEntryValue | null) => {
+      const t = trim(v);
+      if (t === undefined) return undefined;
+      const n = Number(t);
+      return Number.isFinite(n) ? n : NaN;
+    };
+
+    const raw = {
+      nickname: trim(fd.get('nickname')),
+      year: num(fd.get('year')),
+      make: trim(fd.get('make')),
+      model: trim(fd.get('model')),
+      trim: trim(fd.get('trim')),
+      vin: trim(fd.get('vin')),
+      licensePlate: trim(fd.get('licensePlate')),
+      color: trim(fd.get('color')),
+      purchaseOdometer: num(fd.get('purchaseOdometer')),
+    };
+
+    const parsed = CreateVehicleInputSchema.safeParse(raw);
+    if (!parsed.success) {
+      setState({ fieldErrors: parsed.error.flatten().fieldErrors });
+      return;
+    }
+
+    setState({});
+    startTransition(async () => {
+      try {
+        const res = await fetch('/api/vehicles', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          // 'include' instead of the equivalent-on-paper 'same-origin':
+          // empirically the browser doesn't carry the session cookie when
+          // the React transition / Turbopack runtime fires the fetch with
+          // the latter. See task #47 for the diagnostic.
+          credentials: 'include',
+          body: JSON.stringify(parsed.data),
+        });
+        if (res.status === 401) {
+          router.push('/?signin=required');
+          return;
+        }
+        if (!res.ok) {
+          const body = (await res.json().catch(() => null)) as { message?: string } | null;
+          setState({ error: body?.message ?? `Request failed (${res.status})` });
+          return;
+        }
+        router.push('/dashboard');
+        router.refresh();
+      } catch (err) {
+        setState({ error: err instanceof Error ? err.message : 'Unknown error' });
+      }
+    });
+  }
 
   return (
-    <form action={action} className="flex flex-col gap-5">
+    <form onSubmit={onSubmit} className="flex flex-col gap-5">
       {state.error && (
         <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
           {state.error}
@@ -93,7 +167,9 @@ export function VehicleForm() {
         error={state.fieldErrors?.purchaseOdometer?.[0]}
       />
 
-      <SubmitButton />
+      <Button type="submit" disabled={pending}>
+        {pending ? 'Saving…' : 'Add vehicle'}
+      </Button>
     </form>
   );
 }
@@ -114,14 +190,5 @@ function Field({
       <Input id={name} name={name} aria-invalid={error ? true : undefined} {...rest} />
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
-  );
-}
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={pending}>
-      {pending ? 'Saving…' : 'Add vehicle'}
-    </Button>
   );
 }

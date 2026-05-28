@@ -1,7 +1,8 @@
 import 'server-only';
 
 import { cookies } from 'next/headers';
-import { Resource } from 'sst';
+
+import { getApiUrl } from './env';
 
 /**
  * Server-side helper for calling the Stablebook API as the current user.
@@ -38,7 +39,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   const accessToken = store.get('sb_access')?.value;
   if (!accessToken) throw new UnauthenticatedError();
 
-  const res = await fetch(`${Resource.Api.url}${path}`, {
+  const res = await fetch(`${getApiUrl()}${path}`, {
     ...init,
     headers: {
       ...init.headers,
