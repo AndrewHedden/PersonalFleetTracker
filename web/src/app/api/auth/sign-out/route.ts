@@ -2,11 +2,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { getCognitoUrls } from '@/lib/auth';
 import { getAppUrl, getCognitoConfig } from '@/lib/env';
-import { clearSessionCookies } from '@/lib/session';
+import { COOKIE_NAMES } from '@/lib/session';
 
 export async function GET(request: NextRequest) {
-  await clearSessionCookies();
-
   const { clientId } = getCognitoConfig();
   const { logout } = getCognitoUrls();
   const appUrl = getAppUrl(request);
@@ -15,6 +13,11 @@ export async function GET(request: NextRequest) {
   logoutUrl.searchParams.set('client_id', clientId);
   logoutUrl.searchParams.set('logout_uri', appUrl);
 
-  // NextResponse.redirect so the cookie-clearing Set-Cookie headers attach.
-  return NextResponse.redirect(logoutUrl.toString(), { status: 302 });
+  // Build the response first, then clear cookies on it. See session.ts for
+  // why mutations must happen on the response object, not via `cookies()`.
+  const response = NextResponse.redirect(logoutUrl.toString(), { status: 302 });
+  for (const name of Object.values(COOKIE_NAMES)) {
+    response.cookies.delete(name);
+  }
+  return response;
 }

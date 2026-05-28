@@ -3,14 +3,14 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { getCognitoUrls, getOAuth2Client } from '@/lib/auth';
 import { getAppUrl } from '@/lib/env';
-import { takeOAuthCookies } from '@/lib/session';
+import { COOKIE_NAMES, readOAuthCookies } from '@/lib/session';
 
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const code = params.get('code');
   const state = params.get('state');
 
-  const { state: storedState, codeVerifier } = await takeOAuthCookies();
+  const { state: storedState, codeVerifier } = await readOAuthCookies();
 
   if (!code || !state || !storedState || !codeVerifier || state !== storedState) {
     console.log(
@@ -55,12 +55,16 @@ export async function GET(request: NextRequest) {
       path: '/',
     };
 
-    response.cookies.set('sb_access', accessToken, { ...base, maxAge: expiresIn });
-    response.cookies.set('sb_id', idToken, { ...base, maxAge: expiresIn });
+    response.cookies.set(COOKIE_NAMES.ACCESS, accessToken, { ...base, maxAge: expiresIn });
+    response.cookies.set(COOKIE_NAMES.ID, idToken, { ...base, maxAge: expiresIn });
     // sb_refresh skipped: 3rd large Set-Cookie was being stripped between
     // Lambda and the browser. We can revisit refresh-token storage later
     // (server-side session table) — for now the user re-auths every 60 min.
     void refreshToken;
+
+    // Consume the short-lived OAuth dance cookies on the outgoing response.
+    response.cookies.delete(COOKIE_NAMES.OAUTH_STATE);
+    response.cookies.delete(COOKIE_NAMES.OAUTH_VERIFIER);
 
     // Dump what NextResponse actually has on it before returning, so we can
     // confirm Set-Cookie headers are present at the runtime boundary.

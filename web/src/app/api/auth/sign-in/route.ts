@@ -3,12 +3,11 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { getCognitoUrls, getOAuth2Client } from '@/lib/auth';
 import { getAppUrl } from '@/lib/env';
-import { setOAuthCookies } from '@/lib/session';
+import { COOKIE_NAMES, baseCookieOptions } from '@/lib/session';
 
 export async function GET(request: NextRequest) {
   const state = generateState();
   const codeVerifier = generateCodeVerifier();
-  await setOAuthCookies(state, codeVerifier);
 
   const oauth = getOAuth2Client(getAppUrl(request));
   const { authorize } = getCognitoUrls();
@@ -21,8 +20,16 @@ export async function GET(request: NextRequest) {
     ['openid', 'email', 'profile'],
   );
 
-  // NextResponse.redirect (not Response.redirect) so the PKCE state + verifier
-  // cookies set above land on the response. See callback/route.ts for the
-  // same fix.
-  return NextResponse.redirect(authUrl.toString(), { status: 302 });
+  // Build the response first, then attach cookies to it. On Amplify Hosting
+  // the `cookies().set()` pattern doesn't merge into an explicitly-constructed
+  // NextResponse — see session.ts for details.
+  const response = NextResponse.redirect(authUrl.toString(), { status: 302 });
+  const base = baseCookieOptions();
+  const oauthMaxAge = 60 * 10; // 10 min — covers the user authenticating on Hosted UI
+  response.cookies.set(COOKIE_NAMES.OAUTH_STATE, state, { ...base, maxAge: oauthMaxAge });
+  response.cookies.set(COOKIE_NAMES.OAUTH_VERIFIER, codeVerifier, {
+    ...base,
+    maxAge: oauthMaxAge,
+  });
+  return response;
 }
