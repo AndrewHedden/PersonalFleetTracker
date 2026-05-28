@@ -53,21 +53,31 @@ api.route(
 );
 
 /**
- * GET /v1/vehicles — list the authenticated user's vehicles.
- *
- * In-VPC + linked to `db` so the handler can reach RDS on its private
- * endpoint. This is the first DB-backed route — possible thanks to the
- * SST v4 upgrade (the v3.5 deploy crash on `vpc:` + `link:[db]` is gone).
+ * Vehicles CRUD — all routes in-VPC + linked to `db`. JWT-authorized; the
+ * handler scopes everything to the caller's `user_id` derived from claims.sub.
  */
+const vehicleRouteOpts = {
+  vpc,
+  link: [db],
+} as const;
+const vehicleAuthOpts = { auth: { jwt: { authorizer: jwtAuthorizer.id } } } as const;
+
 api.route(
   'GET /v1/vehicles',
   {
     handler: 'packages/api/src/handlers/vehicles-list.handler',
     description: "List the authenticated user's vehicles",
-    vpc,
-    link: [db],
+    ...vehicleRouteOpts,
   },
+  vehicleAuthOpts,
+);
+
+api.route(
+  'POST /v1/vehicles',
   {
-    auth: { jwt: { authorizer: jwtAuthorizer.id } },
+    handler: 'packages/api/src/handlers/vehicles-create.handler',
+    description: 'Create a vehicle for the authenticated user',
+    ...vehicleRouteOpts,
   },
+  vehicleAuthOpts,
 );
