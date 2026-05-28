@@ -1,6 +1,6 @@
-# @pft/db
+# @stablebook/db
 
-Drizzle ORM schema, queries, and migrations for PersonalFleetTracker.
+Drizzle ORM schema, queries, and migrations for Stablebook.
 
 ## Layout
 
@@ -41,16 +41,16 @@ There is no `reminders` table. For each `maintenance_schedules` row we look up t
 
 ```bash
 # Generate migration SQL from the TS schema
-pnpm --filter @pft/db db:generate
+pnpm --filter @stablebook/db db:generate
 
 # Apply migrations to whichever DB DATABASE_URL points to
-pnpm --filter @pft/db db:migrate
+pnpm --filter @stablebook/db db:migrate
 
 # Open Drizzle Studio (web UI to inspect data)
-pnpm --filter @pft/db db:studio
+pnpm --filter @stablebook/db db:studio
 
 # Verify migration history is consistent
-pnpm --filter @pft/db db:check
+pnpm --filter @stablebook/db db:check
 ```
 
 ## Local dev

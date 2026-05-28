@@ -1,7 +1,7 @@
 /// <reference path="./.sst/platform/config.d.ts" />
 
 /**
- * PersonalFleetTracker — SST v3 app definition.
+ * Stablebook — SST app definition.
  *
  * Stages:
  *   - personal stages (e.g. `andrew`) for day-to-day dev
@@ -14,7 +14,7 @@
 export default $config({
   app(input) {
     return {
-      name: 'personal-fleet-tracker',
+      name: 'stablebook',
       removal: input?.stage === 'production' ? 'retain' : 'remove',
       home: 'aws',
       providers: {

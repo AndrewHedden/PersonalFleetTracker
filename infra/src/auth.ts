@@ -16,13 +16,13 @@ const CALLBACK_PATH = '/api/auth/callback';
 
 // CloudFront URL for the deployed `andrew` stage. Stable for the life of the
 // distribution; if we ever rebuild the CDN this list needs updating.
-const WEB_URLS = ['http://localhost:3000', 'https://d2v3k1wol4ugl8.cloudfront.net'];
+const WEB_URLS = ['http://localhost:3000', 'https://d2qhlgk54w8vs.cloudfront.net'];
 
 export const userPool = new sst.aws.CognitoUserPool('UserPool', {
   usernames: ['email'],
   // Spins up a Cognito-managed Hosted UI at
-  //   https://pft-<stage>.auth.<region>.amazoncognito.com
-  domain: { prefix: `pft-${$app.stage}` },
+  //   https://stablebook-<stage>.auth.<region>.amazoncognito.com
+  domain: { prefix: `stablebook-${$app.stage}` },
   transform: {
     userPool: (args) => {
       // Cognito will email a 6-digit verification code on sign-up.

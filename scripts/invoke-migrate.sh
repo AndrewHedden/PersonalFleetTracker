@@ -12,12 +12,12 @@ STAGE="${1:-andrew}"
 
 FN=$(aws lambda list-functions \
   --profile "$PROFILE" \
-  --query "Functions[?contains(FunctionName, 'personal-fleet-tracker-${STAGE}-MigratorFunction')].FunctionName" \
+  --query "Functions[?contains(FunctionName, 'stablebook-${STAGE}-MigratorFunction')].FunctionName" \
   --output text | head -n1)
 
 if [[ -z "$FN" ]]; then
   echo "error: Migrator function not found for stage '$STAGE' under profile '$PROFILE'." >&2
-  echo "       Has the stage been deployed? Try: pnpm --filter @pft/infra sst:deploy --stage $STAGE" >&2
+  echo "       Has the stage been deployed? Try: pnpm --filter @stablebook/infra sst:deploy --stage $STAGE" >&2
   exit 1
 fi
 

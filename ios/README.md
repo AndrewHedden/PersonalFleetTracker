@@ -1,6 +1,6 @@
 # iOS app
 
-Native SwiftUI app for PersonalFleetTracker. Scaffolded in Phase 4.
+Native SwiftUI app for Stablebook. Scaffolded in Phase 4.
 
 Will use:
 

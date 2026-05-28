@@ -6,20 +6,20 @@ import { verifyAccessToken } from './auth';
  * HTTP-only cookie helpers for the Cognito session.
  *
  * We store three cookies, all HttpOnly + Secure + SameSite=Lax:
- *   - `pft_access`     — Cognito access token (used for the API authorizer)
- *   - `pft_id`         — Cognito ID token (used to surface user email/sub)
- *   - `pft_refresh`    — Cognito refresh token (for future silent renewals)
+ *   - `sb_access`     — Cognito access token (used for the API authorizer)
+ *   - `sb_id`         — Cognito ID token (used to surface user email/sub)
+ *   - `sb_refresh`    — Cognito refresh token (for future silent renewals)
  *
  * Short-lived helper cookies for the OAuth dance live alongside:
- *   - `pft_oauth_state`     — CSRF guard for the callback
- *   - `pft_oauth_verifier`  — PKCE code verifier
+ *   - `sb_oauth_state`     — CSRF guard for the callback
+ *   - `sb_oauth_verifier`  — PKCE code verifier
  */
 
-const ACCESS = 'pft_access';
-const ID = 'pft_id';
-const REFRESH = 'pft_refresh';
-const OAUTH_STATE = 'pft_oauth_state';
-const OAUTH_VERIFIER = 'pft_oauth_verifier';
+const ACCESS = 'sb_access';
+const ID = 'sb_id';
+const REFRESH = 'sb_refresh';
+const OAUTH_STATE = 'sb_oauth_state';
+const OAUTH_VERIFIER = 'sb_oauth_verifier';
 
 interface CookieOptions {
   httpOnly: boolean;

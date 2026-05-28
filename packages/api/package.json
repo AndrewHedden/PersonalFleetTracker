@@ -1,5 +1,5 @@
 {
-  "name": "@pft/api",
+  "name": "@stablebook/api",
   "version": "0.0.0",
   "private": true,
   "description": "Lambda handlers and shared API logic. Wired into API Gateway by infra/.",
@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@pft/db": "workspace:*",
+    "@stablebook/db": "workspace:*",
     "drizzle-orm": "^0.36.4",
     "pg": "^8.13.1",
     "sst": "4.14.3"

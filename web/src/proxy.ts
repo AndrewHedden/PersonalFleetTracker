@@ -22,7 +22,7 @@ export function proxy(request: NextRequest) {
   );
   if (!isProtected) return NextResponse.next();
 
-  const accessToken = request.cookies.get('pft_access')?.value;
+  const accessToken = request.cookies.get('sb_access')?.value;
   if (!accessToken) {
     const signIn = request.nextUrl.clone();
     signIn.pathname = '/';

@@ -19,7 +19,7 @@ export default async function HomePage({
         <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
           Personal · Portfolio
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">PersonalFleetTracker</h1>
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Stablebook</h1>
         <p className="text-lg leading-7 text-zinc-600 dark:text-zinc-400">
           Multi-vehicle fuel and maintenance tracker. Log fill-ups, track service, and get reminders
           when routine maintenance is due. Web app today, SwiftUI iOS companion next.
@@ -57,12 +57,12 @@ export default async function HomePage({
 
       <footer className="text-sm text-zinc-500">
         <a
-          href="https://github.com/AndrewHedden/PersonalFleetTracker"
+          href="https://github.com/AndrewHedden/Stablebook"
           className="underline-offset-4 hover:underline"
           target="_blank"
           rel="noopener noreferrer"
         >
-          github.com/AndrewHedden/PersonalFleetTracker →
+          github.com/AndrewHedden/Stablebook →
         </a>
       </footer>
     </main>
