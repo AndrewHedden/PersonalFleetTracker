@@ -3,6 +3,12 @@ packages:
   - 'infra'
   - 'packages/*'
 
+# pnpm 11+ reads config from pnpm-workspace.yaml (not .npmrc).
+# `nodeLinker: hoisted` produces a flat, npm-style node_modules — required
+# by AWS Amplify Hosting's Next.js SSR packager, which can't follow pnpm's
+# default `.pnpm/` content-addressed symlink layout when looking for `next`.
+nodeLinker: hoisted
+
 # Explicit allowlist for native build scripts (pnpm >=10 requires this).
 # Keep this list short and audited.
 allowBuilds:
