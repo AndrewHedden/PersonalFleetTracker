@@ -21,6 +21,12 @@ applications:
             - npm install -g pnpm@11.3.0
         build:
           commands:
+            # Materialize Amplify console env vars into web/.env.production so
+            # Next.js loads them at runtime in the SSR Lambda. The console
+            # vars are reliably available at build time but don't always
+            # propagate to the Lambda runtime in monorepo SSR setups.
+            - printenv | grep -E '^(NEXT_PUBLIC_AWS_REGION|COGNITO_USER_POOL_ID|COGNITO_APP_CLIENT_ID|COGNITO_DOMAIN_URL|API_URL)=' >> web/.env.production
+            - cat web/.env.production
             - pnpm install --frozen-lockfile
             - pnpm --filter @stablebook/web build
       artifacts:
