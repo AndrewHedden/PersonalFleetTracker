@@ -19,6 +19,7 @@ PATHS=(
   "/api/this-does-not-exist"
   "/api/test-redirect"
   "/api/test-json-cookies"
+  "/api/test-json-secure"
   "/api/test-redirect-cookies"
   "/api/test-arctic"
   "/api/test-env"
