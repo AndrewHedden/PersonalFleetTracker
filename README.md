@@ -1,4 +1,4 @@
-# PersonalFleetTracker
+# Stablebook
 
 A personal fleet tracker: log fuel and maintenance for the vehicles you own, get reminders before routine maintenance comes due. Web app + native iOS companion, deployed on AWS.
 
@@ -55,7 +55,7 @@ Designed to stay inside the AWS Free Tier wherever possible.
 
 ```bash
 git clone <this repo>
-cd PersonalFleetTracker
+cd Stablebook
 
 # Install Node 22 (mise reads .mise.toml)
 mise install
@@ -117,19 +117,19 @@ Response is a JSON object with `status`, `appliedAt`, and the resulting list of 
 
 ```bash
 # (One-time) Download SST platform code
-pnpm --filter @pft/infra exec sst install
+pnpm --filter @stablebook/infra exec sst install
 
 # See what would change without applying
-pnpm --filter @pft/infra sst:diff
+pnpm --filter @stablebook/infra sst:diff
 
 # Local dev with `sst dev` (live Lambda + tunnel)
-pnpm --filter @pft/infra sst:dev
+pnpm --filter @stablebook/infra sst:dev
 
 # Deploy a stage (defaults to your username)
-pnpm --filter @pft/infra sst:deploy --stage andrew
+pnpm --filter @stablebook/infra sst:deploy --stage andrew
 
 # Tear a stage down
-pnpm --filter @pft/infra sst:remove --stage andrew
+pnpm --filter @stablebook/infra sst:remove --stage andrew
 ```
 
 ## Roadmap
@@ -139,7 +139,7 @@ pnpm --filter @pft/infra sst:remove --stage andrew
 | **0** | ✅ Repo skeleton, pnpm workspaces, lint/format/typecheck/CI scaffolding, Node pinning                            |
 | **1** | ✅ Drizzle schema (`users`, `vehicles`, `fuel_entries`, 4 × `maintenance_*`), initial migration, seeded task catalog |
 | **2** | ✅ SST v3 stacks: VPC (no NAT), RDS Postgres `t4g.micro`, Cognito user pool + client, API Gateway HTTP API + Lambda, Next.js site |
-| **3a** | ✅ Next.js 16 (App Router, TS, Tailwind v4, ESLint, Turbopack) scaffolded into the workspace as `@pft/web` |
+| **3a** | ✅ Next.js 16 (App Router, TS, Tailwind v4, ESLint, Turbopack) scaffolded into the workspace as `@stablebook/web` |
 | 3b    | shadcn/ui + Cognito sign-in (web)                                                                                |
 | 3c    | First end-to-end vertical slice: Vehicles CRUD (schema → Lambda → Next.js login-gated page)                      |
 | 4     | iOS app shell: SwiftUI scaffold, Amplify Swift + Cognito sign-in, vehicles list against the same API             |

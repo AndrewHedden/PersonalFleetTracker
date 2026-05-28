@@ -1,8 +1,8 @@
 {
-  "name": "@pft/db",
+  "name": "@stablebook/db",
   "version": "0.0.0",
   "private": true,
-  "description": "Drizzle ORM schema, queries, and migrations for PersonalFleetTracker.",
+  "description": "Drizzle ORM schema, queries, and migrations for Stablebook.",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

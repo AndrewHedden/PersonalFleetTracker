@@ -1,8 +1,8 @@
 {
-  "name": "personal-fleet-tracker",
+  "name": "stablebook",
   "version": "0.0.0",
   "private": true,
-  "description": "Multi-vehicle fuel and maintenance tracker. Next.js web + SwiftUI iOS, deployed to AWS via SST.",
+  "description": "Stablebook — multi-vehicle fuel and maintenance tracker. Next.js web + SwiftUI iOS, deployed to AWS via SST.",
   "packageManager": "pnpm@11.3.0",
   "engines": {
     "node": ">=22.0.0",

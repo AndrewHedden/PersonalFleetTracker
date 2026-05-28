@@ -1,5 +1,5 @@
 {
-  "name": "@pft/infra",
+  "name": "@stablebook/infra",
   "version": "0.0.0",
   "private": true,
   "description": "SST infrastructure: Cognito, RDS Postgres, API Gateway + Lambda, Migrator Lambda.",
@@ -12,7 +12,7 @@
     "sst:dev": "sst dev"
   },
   "dependencies": {
-    "@pft/db": "workspace:*"
+    "@stablebook/db": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.1",

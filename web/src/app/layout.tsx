@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'PersonalFleetTracker',
+  title: 'Stablebook',
   description:
-    'Multi-vehicle fuel and maintenance tracker. Log fill-ups, track service, get reminders when maintenance is due.',
+    'Stablebook — multi-vehicle fuel and maintenance tracker. Log fill-ups, track service, get reminders when maintenance is due.',
 };
 
 export default function RootLayout({

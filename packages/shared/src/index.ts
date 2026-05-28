@@ -1,1 +1,1 @@
-export const PACKAGE_NAME = '@pft/shared';
+export const PACKAGE_NAME = '@stablebook/shared';
