@@ -27,13 +27,20 @@ export default async function DashboardPage() {
       </header>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle>Your vehicles</CardTitle>
+          <Link
+            href="/dashboard/vehicles/new"
+            className={buttonVariants({ variant: 'default', size: 'sm' })}
+          >
+            Add a vehicle
+          </Link>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           {vehicles.length === 0 ? (
             <p className="text-zinc-600 dark:text-zinc-400">
-              No vehicles yet. The create form lands in Phase 3c.2.
+              No vehicles yet. Click <span className="font-medium">Add a vehicle</span> to get
+              started.
             </p>
           ) : (
             <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">

@@ -1,0 +1,31 @@
+# AWS Amplify Hosting build settings for Stablebook web.
+#
+# Amplify runs each phase's commands with cwd = appRoot (i.e. /web in this
+# monorepo). For pnpm to install all workspaces (so @stablebook/shared
+# resolves), we `cd ..` to the repo root before `pnpm install`. The build
+# command runs from /web (cwd is reset to appRoot at the start of each
+# phase), and `.next` artifacts land there for Amplify's Next.js runtime.
+
+version: 1
+applications:
+  - appRoot: web
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - corepack enable
+            - corepack prepare pnpm@11.3.0 --activate
+            - cd ..
+            - pnpm install --frozen-lockfile
+        build:
+          commands:
+            - pnpm build
+      artifacts:
+        baseDirectory: .next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+          - .next/cache/**/*
+          - ../node_modules/**/*
