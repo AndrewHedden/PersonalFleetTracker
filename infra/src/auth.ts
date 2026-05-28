@@ -14,9 +14,10 @@
 
 const CALLBACK_PATH = '/api/auth/callback';
 
-// CloudFront URL for the deployed `andrew` stage. Stable for the life of the
-// distribution; if we ever rebuild the CDN this list needs updating.
-const WEB_URLS = ['http://localhost:3000', 'https://d2qhlgk54w8vs.cloudfront.net'];
+// Web is now hosted on AWS Amplify Hosting (the URL is the `main`-branch
+// preview from the Amplify app). If we rebuild the Amplify app or change
+// branches, update this list.
+const WEB_URLS = ['http://localhost:3000', 'https://main.d3gmb1eaiag2ib.amplifyapp.com'];
 
 export const userPool = new sst.aws.CognitoUserPool('UserPool', {
   usernames: ['email'],
