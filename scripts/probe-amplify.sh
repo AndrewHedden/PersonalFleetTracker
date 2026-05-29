@@ -2,9 +2,9 @@
 # Probe the deployed Amplify hosting for route-handler health.
 #
 # Hits a fixed set of paths with curl, captures status / Content-Length /
-# x-cache / Location, and prints a one-line summary per path. Used to
-# diagnose the 0-byte `Error from cloudfront` failures on /api/auth/*
-# without bouncing test results through a human.
+# x-cache / Location, and prints a one-line summary per path. Useful when
+# diagnosing whether the production deploy is healthy or whether a specific
+# route is returning unexpected responses.
 #
 # Usage:
 #   scripts/probe-amplify.sh                # default base URL
@@ -15,18 +15,9 @@ BASE="${1:-https://stablebook.retrouvez.net}"
 
 PATHS=(
   "/"
+  "/sign-in"
+  "/sign-up"
   "/api/health"
-  "/api/this-does-not-exist"
-  "/api/test-redirect"
-  "/api/test-json-cookies"
-  "/api/test-json-secure"
-  "/api/test-redirect-cookies"
-  "/api/test-arctic"
-  "/api/test-env"
-  "/api/test-prod-cookies"
-  "/api/test-callback-mock"
-  "/api/test-cookies-in"
-  "/api/auth/sign-in"
   "/api/auth/sign-out"
 )
 
@@ -35,7 +26,6 @@ printf "%-32s  %-6s  %-7s  %-22s  %s\n" "----" "------" "---" "-------" "-------
 
 for path in "${PATHS[@]}"; do
   url="${BASE}${path}"
-  # -s silent, -D - dump headers to stdout, -o body file, --max-redirs 0 don't follow
   body_file=$(mktemp)
   headers=$(curl -sS -o "$body_file" -D - --max-redirs 0 "$url" 2>&1)
   rc=$?
@@ -51,7 +41,6 @@ for path in "${PATHS[@]}"; do
   content_length=$(printf '%s\n' "$headers" | grep -i '^content-length:' | tr -d '\r' | awk '{print $2}' | head -1)
   location=$(printf '%s\n' "$headers" | grep -i '^location:' | tr -d '\r' | sed -E 's/^[Ll]ocation: //' | head -1 | cut -c1-80)
 
-  # If no location header and status indicates success/error, peek at body
   detail="${location:-}"
   if [[ -z "$detail" && "$status" =~ ^(200|400|404|500)$ ]]; then
     detail=$(head -c 80 "$body_file" | tr '\n' ' ' | tr -d '\r')

@@ -4,18 +4,17 @@ import { redirect } from 'next/navigation';
 
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { COOKIE_NAMES } from '@/lib/session';
 
 import { VehicleForm } from './vehicle-form';
 
-// Lightweight cookie-presence check (the edge proxy was removed because of
-// RSC-navigation cookie quirks; we now rely on the page itself, the form's
-// `/api/vehicles` route handler, and API Gateway's JWT authorizer as
-// successive auth layers). We deliberately don't verify the JWT here — a
-// forged cookie still can't actually create a vehicle because API Gateway
-// validates the bearer against Cognito.
+// Lightweight cookie-presence check — we don't verify the JWT here because the
+// form's `/api/vehicles` route handler and API Gateway's JWT authorizer are
+// the load-bearing checks. A forged cookie passes this gate but can't
+// actually create a vehicle.
 export default async function NewVehiclePage() {
   const store = await cookies();
-  if (!store.get('sb_access')) {
+  if (!store.get(COOKIE_NAMES.ACCESS)) {
     redirect('/?signin=required');
   }
 

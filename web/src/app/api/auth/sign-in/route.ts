@@ -1,35 +1,37 @@
-import { CodeChallengeMethod, generateCodeVerifier, generateState } from 'arctic';
+import { SignInInputSchema } from '@stablebook/shared';
 import { NextResponse, type NextRequest } from 'next/server';
 
-import { getCognitoUrls, getOAuth2Client } from '@/lib/auth';
-import { getAppUrl } from '@/lib/env';
+import { initiateAuth } from '@/lib/cognito';
 import { COOKIE_NAMES, baseCookieOptions } from '@/lib/session';
 
-export async function GET(request: NextRequest) {
-  const state = generateState();
-  const codeVerifier = generateCodeVerifier();
+import { authErrorFromCognito, badInput } from '../_helpers';
 
-  const oauth = getOAuth2Client(getAppUrl(request));
-  const { authorize } = getCognitoUrls();
+/**
+ * Authenticate against Cognito with email + password. Sets sb_access + sb_id
+ * cookies on the response. Because this response is the result of a same-
+ * origin XHR (from our own /sign-in form), the cookies aren't subject to the
+ * cross-origin bounce eviction that killed the previous Hosted UI flow.
+ */
+export async function POST(request: NextRequest) {
+  const parsed = SignInInputSchema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return badInput(parsed.error);
 
-  const authUrl = oauth.createAuthorizationURLWithPKCE(
-    authorize,
-    state,
-    CodeChallengeMethod.S256,
-    codeVerifier,
-    ['openid', 'email', 'profile'],
-  );
+  let tokens;
+  try {
+    tokens = await initiateAuth(parsed.data.email, parsed.data.password);
+  } catch (err) {
+    return authErrorFromCognito(err, 'sign-in');
+  }
 
-  // Build the response first, then attach cookies to it. On Amplify Hosting
-  // the `cookies().set()` pattern doesn't merge into an explicitly-constructed
-  // NextResponse — see session.ts for details.
-  const response = NextResponse.redirect(authUrl.toString(), { status: 302 });
+  const response = NextResponse.json({ ok: true });
   const base = baseCookieOptions();
-  const oauthMaxAge = 60 * 10; // 10 min — covers the user authenticating on Hosted UI
-  response.cookies.set(COOKIE_NAMES.OAUTH_STATE, state, { ...base, maxAge: oauthMaxAge });
-  response.cookies.set(COOKIE_NAMES.OAUTH_VERIFIER, codeVerifier, {
+  response.cookies.set(COOKIE_NAMES.ACCESS, tokens.accessToken, {
     ...base,
-    maxAge: oauthMaxAge,
+    maxAge: tokens.expiresIn,
+  });
+  response.cookies.set(COOKIE_NAMES.ID, tokens.idToken, {
+    ...base,
+    maxAge: tokens.expiresIn,
   });
   return response;
 }

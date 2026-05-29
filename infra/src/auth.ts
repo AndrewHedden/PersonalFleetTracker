@@ -76,7 +76,17 @@ export const userPoolClient = userPool.addClient('AppClient', {
       args.logoutUrls = WEB_URLS;
       args.supportedIdentityProviders = ['COGNITO'];
       args.preventUserExistenceErrors = 'ENABLED';
-      args.explicitAuthFlows = ['ALLOW_REFRESH_TOKEN_AUTH', 'ALLOW_USER_SRP_AUTH'];
+      // ALLOW_USER_PASSWORD_AUTH lets our Next.js Lambda send username +
+      // password to Cognito's InitiateAuth on behalf of the user (we own the
+      // sign-in UI and the connection is server-to-server over TLS, so the
+      // password is never exposed to the client). ALLOW_USER_SRP_AUTH stays
+      // available for future native clients (iOS/Amplify Swift) that prefer
+      // the SRP handshake.
+      args.explicitAuthFlows = [
+        'ALLOW_REFRESH_TOKEN_AUTH',
+        'ALLOW_USER_SRP_AUTH',
+        'ALLOW_USER_PASSWORD_AUTH',
+      ];
       // Token lifetimes — short access token, longer refresh.
       args.accessTokenValidity = 60; // minutes
       args.idTokenValidity = 60; // minutes

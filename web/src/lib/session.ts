@@ -1,6 +1,34 @@
+import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import { cookies } from 'next/headers';
 
-import { verifyAccessToken } from './auth';
+import { getCognitoConfig } from './env';
+
+/**
+ * Cognito access-token verifier. Caches the JWKS on first use. We verify
+ * tokens server-side on every protected page so a forged cookie can't reach
+ * a server component that reads user data — API Gateway also verifies, but
+ * the Next.js render path needs its own trust decision.
+ */
+let _verifier: ReturnType<typeof CognitoJwtVerifier.create> | undefined;
+function getAccessTokenVerifier() {
+  if (!_verifier) {
+    const { userPoolId, clientId } = getCognitoConfig();
+    _verifier = CognitoJwtVerifier.create({
+      userPoolId,
+      clientId,
+      tokenUse: 'access',
+    });
+  }
+  return _verifier;
+}
+
+async function verifyAccessToken(token: string) {
+  try {
+    return await getAccessTokenVerifier().verify(token);
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Cookie names + base options for the Cognito session.
@@ -8,24 +36,18 @@ import { verifyAccessToken } from './auth';
  * Mutations (set / delete) must happen on the outgoing NextResponse, not on
  * the request-side `cookies()` store — on AWS Amplify Hosting's Next.js
  * runtime, mutations applied via `cookies().set()` / `cookies().delete()`
- * fail to merge into an explicitly-constructed `NextResponse`, and the
- * Lambda returns an empty body that CloudFront reports as
- * `x-cache: Error from cloudfront`. Route handlers must build the response
- * first and then call `response.cookies.set/delete(...)`.
+ * fail to merge into an explicitly-constructed `NextResponse`. Route handlers
+ * must build the response first and then call `response.cookies.set/delete()`.
  *
  *   sb_access     — Cognito access token (used for the API authorizer)
  *   sb_id         — Cognito ID token (surfaces user email/sub)
- *   sb_refresh    — Cognito refresh token (future silent renewal)
- *   sb_oauth_state     — CSRF guard for the callback
- *   sb_oauth_verifier  — PKCE code verifier
+ *   sb_refresh    — reserved for future silent token renewal
  */
 
 export const COOKIE_NAMES = {
   ACCESS: 'sb_access',
   ID: 'sb_id',
   REFRESH: 'sb_refresh',
-  OAUTH_STATE: 'sb_oauth_state',
-  OAUTH_VERIFIER: 'sb_oauth_verifier',
 } as const;
 
 export function baseCookieOptions() {
@@ -35,21 +57,6 @@ export function baseCookieOptions() {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax' as const,
     path: '/',
-  };
-}
-
-/**
- * Read (but do not delete) the short-lived OAuth state + PKCE verifier
- * cookies. Callers delete them on the outgoing response.
- */
-export async function readOAuthCookies(): Promise<{
-  state: string | null;
-  codeVerifier: string | null;
-}> {
-  const store = await cookies();
-  return {
-    state: store.get(COOKIE_NAMES.OAUTH_STATE)?.value ?? null,
-    codeVerifier: store.get(COOKIE_NAMES.OAUTH_VERIFIER)?.value ?? null,
   };
 }
 

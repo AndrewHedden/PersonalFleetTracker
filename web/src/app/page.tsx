@@ -48,9 +48,14 @@ export default async function HomePage({
               </Link>
             </div>
           ) : (
-            <Link href="/api/auth/sign-in" className={buttonVariants({ variant: 'default' })}>
-              Sign in or create an account
-            </Link>
+            <div className="flex gap-2">
+              <Link href="/sign-in" className={buttonVariants({ variant: 'default' })}>
+                Sign in
+              </Link>
+              <Link href="/sign-up" className={buttonVariants({ variant: 'outline' })}>
+                Create an account
+              </Link>
+            </div>
           )}
         </CardContent>
       </Card>

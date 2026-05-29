@@ -3,6 +3,7 @@ import 'server-only';
 import { cookies } from 'next/headers';
 
 import { getApiUrl } from './env';
+import { COOKIE_NAMES } from './session';
 
 /**
  * Server-side helper for calling the Stablebook API as the current user.
@@ -36,7 +37,7 @@ export class ApiError extends Error {
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const store = await cookies();
-  const accessToken = store.get('sb_access')?.value;
+  const accessToken = store.get(COOKIE_NAMES.ACCESS)?.value;
   if (!accessToken) throw new UnauthenticatedError();
 
   const res = await fetch(`${getApiUrl()}${path}`, {
