@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     return errorRedirect(appUrl, '/sign-in', code, parsed.data.email);
   }
 
-  const response = NextResponse.redirect(`${appUrl}/dashboard`, { status: 303 });
+  const response = NextResponse.redirect(`${appUrl}/dashboard`, { status: 302 });
   const base = baseCookieOptions();
   response.cookies.set(COOKIE_NAMES.ACCESS, tokens.accessToken, {
     ...base,
@@ -60,5 +60,5 @@ function errorRedirect(
   const url = new URL(`${appUrl}${path}`);
   if (errorCode) url.searchParams.set('error', errorCode);
   if (email) url.searchParams.set('email', email);
-  return NextResponse.redirect(url.toString(), { status: 303 });
+  return NextResponse.redirect(url.toString(), { status: 302 });
 }
