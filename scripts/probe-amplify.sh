@@ -25,6 +25,7 @@ PATHS=(
   "/api/test-env"
   "/api/test-prod-cookies"
   "/api/test-callback-mock"
+  "/api/test-cookies-in"
   "/api/auth/sign-in"
   "/api/auth/sign-out"
 )
