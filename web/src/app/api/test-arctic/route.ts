@@ -5,7 +5,11 @@ export async function GET() {
   try {
     const state = generateState();
     const codeVerifier = generateCodeVerifier();
-    return NextResponse.json({ ok: true, stateLen: state.length, verifierLen: codeVerifier.length });
+    return NextResponse.json({
+      ok: true,
+      stateLen: state.length,
+      verifierLen: codeVerifier.length,
+    });
   } catch (err) {
     return NextResponse.json(
       { ok: false, error: err instanceof Error ? err.message : String(err) },
