@@ -26,11 +26,29 @@ const WEB_URLS = [
   'https://main.d3gmb1eaiag2ib.amplifyapp.com',
 ];
 
+// ACM cert for auth.retrouvez.net, manually pre-created in us-east-1.
+// Cognito custom domains require the cert to be in us-east-1 regardless
+// of the user pool's region. Manually managed (not Pulumi-owned) because
+// SST's default cert provisioning expects Route 53 for DNS validation,
+// and our DNS lives at Squarespace.
+const COGNITO_CUSTOM_DOMAIN_CERT_ARN =
+  'arn:aws:acm:us-east-1:537557168578:certificate/ef771050-6d9d-4ca5-9f1f-c7cad810b339';
+
 export const userPool = new sst.aws.CognitoUserPool('UserPool', {
   usernames: ['email'],
-  // Spins up a Cognito-managed Hosted UI at
-  //   https://stablebook-<stage>.auth.<region>.amazoncognito.com
-  domain: { prefix: `stablebook-${$app.stage}` },
+  // Custom domain for the Hosted UI on auth.retrouvez.net. We previously
+  // used the Cognito-managed prefix domain (stablebook-<stage>.auth.<region>.
+  // amazoncognito.com) but Safari/Chrome bounce-tracking protection killed
+  // session cookies set via the cross-site redirect chain from the
+  // amazoncognito.com domain back to our app. Hosting the auth UI on a
+  // same-site subdomain (auth.retrouvez.net + stablebook.retrouvez.net both
+  // sharing retrouvez.net as the eTLD+1) lets browsers treat the entire
+  // OAuth flow as first-party.
+  domain: {
+    name: 'auth.retrouvez.net',
+    cert: COGNITO_CUSTOM_DOMAIN_CERT_ARN,
+    dns: false, // DNS is at Squarespace; we add the CNAME manually
+  },
   transform: {
     userPool: (args) => {
       // Cognito will email a 6-digit verification code on sign-up.
