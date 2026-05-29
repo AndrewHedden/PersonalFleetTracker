@@ -14,10 +14,17 @@
 
 const CALLBACK_PATH = '/api/auth/callback';
 
-// Web is now hosted on AWS Amplify Hosting (the URL is the `main`-branch
-// preview from the Amplify app). If we rebuild the Amplify app or change
-// branches, update this list.
-const WEB_URLS = ['http://localhost:3000', 'https://main.d3gmb1eaiag2ib.amplifyapp.com'];
+// Web is hosted on AWS Amplify Hosting. We expose it via a custom domain
+// (stablebook.retrouvez.net) because Safari and Chrome apply bounce-tracking
+// protection to public-suffix domains like *.amplifyapp.com, which deletes
+// session cookies set during the OAuth callback redirect chain. The
+// auto-generated amplifyapp URL is kept here so old links/test data still
+// resolve, but the custom domain is what production sign-in should use.
+const WEB_URLS = [
+  'http://localhost:3000',
+  'https://stablebook.retrouvez.net',
+  'https://main.d3gmb1eaiag2ib.amplifyapp.com',
+];
 
 export const userPool = new sst.aws.CognitoUserPool('UserPool', {
   usernames: ['email'],

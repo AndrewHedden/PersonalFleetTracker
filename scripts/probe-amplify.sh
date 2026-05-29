@@ -11,7 +11,7 @@
 #   scripts/probe-amplify.sh https://other  # override base URL
 set -uo pipefail
 
-BASE="${1:-https://main.d3gmb1eaiag2ib.amplifyapp.com}"
+BASE="${1:-https://stablebook.retrouvez.net}"
 
 PATHS=(
   "/"
