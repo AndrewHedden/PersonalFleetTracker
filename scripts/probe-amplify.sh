@@ -18,7 +18,6 @@ PATHS=(
   "/sign-in"
   "/sign-up"
   "/api/health"
-  "/api/auth/sign-out"
 )
 
 printf "%-32s  %-6s  %-7s  %-22s  %s\n" "path" "status" "len" "x-cache" "location/error"
