@@ -2,28 +2,43 @@ import { SignInInputSchema } from '@stablebook/shared';
 import { NextResponse, type NextRequest } from 'next/server';
 
 import { initiateAuth } from '@/lib/cognito';
+import { getAppUrl } from '@/lib/env';
 import { COOKIE_NAMES, baseCookieOptions } from '@/lib/session';
 
-import { authErrorFromCognito, badInput } from '../_helpers';
+import { extractCognitoErrorCode, parseFormBody } from '../_helpers';
 
 /**
- * Authenticate against Cognito with email + password. Sets sb_access + sb_id
- * cookies on the response. Because this response is the result of a same-
- * origin XHR (from our own /sign-in form), the cookies aren't subject to the
- * cross-origin bounce eviction that killed the previous Hosted UI flow.
+ * Sign in via a standard same-origin form POST. Returns a 302 redirect to
+ * /dashboard with sb_access + sb_id Set-Cookie headers — this pattern was
+ * empirically verified to persist cookies in Safari and Chrome, where
+ * XHR-set cookies were silently evicted even on same-origin same-site
+ * requests (see callback debug history in MEMORY.md / git log).
+ *
+ * Errors redirect back to /sign-in with ?error=<code>, plus &email=<…> so
+ * the form is pre-filled. Special case: user_not_confirmed redirects to
+ * /confirm with the email pre-filled.
  */
 export async function POST(request: NextRequest) {
-  const parsed = SignInInputSchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return badInput(parsed.error);
+  const appUrl = getAppUrl(request);
+  const body = await parseFormBody(request);
+
+  const parsed = SignInInputSchema.safeParse(body);
+  if (!parsed.success) {
+    return errorRedirect(appUrl, '/sign-in', 'invalid_input', body.email);
+  }
 
   let tokens;
   try {
     tokens = await initiateAuth(parsed.data.email, parsed.data.password);
   } catch (err) {
-    return authErrorFromCognito(err, 'sign-in');
+    const code = extractCognitoErrorCode(err, 'sign-in');
+    if (code === 'user_not_confirmed') {
+      return errorRedirect(appUrl, '/confirm', null, parsed.data.email);
+    }
+    return errorRedirect(appUrl, '/sign-in', code, parsed.data.email);
   }
 
-  const response = NextResponse.json({ ok: true });
+  const response = NextResponse.redirect(`${appUrl}/dashboard`, { status: 303 });
   const base = baseCookieOptions();
   response.cookies.set(COOKIE_NAMES.ACCESS, tokens.accessToken, {
     ...base,
@@ -34,4 +49,16 @@ export async function POST(request: NextRequest) {
     maxAge: tokens.expiresIn,
   });
   return response;
+}
+
+function errorRedirect(
+  appUrl: string,
+  path: string,
+  errorCode: string | null,
+  email: string | null | undefined,
+): NextResponse {
+  const url = new URL(`${appUrl}${path}`);
+  if (errorCode) url.searchParams.set('error', errorCode);
+  if (email) url.searchParams.set('email', email);
+  return NextResponse.redirect(url.toString(), { status: 303 });
 }
