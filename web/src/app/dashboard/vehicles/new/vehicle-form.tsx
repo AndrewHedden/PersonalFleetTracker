@@ -7,6 +7,7 @@ import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { apiFetch } from '@/lib/auth-client';
 
 interface FormState {
   error?: string;
@@ -61,28 +62,16 @@ export function VehicleForm() {
     setState({});
     startTransition(async () => {
       try {
-        const res = await fetch('/api/vehicles', {
+        await apiFetch('/api/vehicles', {
           method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          // 'include' instead of the equivalent-on-paper 'same-origin':
-          // empirically the browser doesn't carry the session cookie when
-          // the React transition / Turbopack runtime fires the fetch with
-          // the latter. See task #47 for the diagnostic.
-          credentials: 'include',
           body: JSON.stringify(parsed.data),
         });
-        if (res.status === 401) {
-          router.push('/?signin=required');
-          return;
-        }
-        if (!res.ok) {
-          const body = (await res.json().catch(() => null)) as { message?: string } | null;
-          setState({ error: body?.message ?? `Request failed (${res.status})` });
-          return;
-        }
         router.push('/dashboard');
-        router.refresh();
       } catch (err) {
+        if (err instanceof Error && (err.message === 'Not signed in' || err.message === 'Session expired')) {
+          router.push('/sign-in');
+          return;
+        }
         setState({ error: err instanceof Error ? err.message : 'Unknown error' });
       }
     });

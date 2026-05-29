@@ -1,34 +1,21 @@
 import 'server-only';
 
-import type { NextRequest } from 'next/server';
+import type { AuthErrorResponse } from '@stablebook/shared';
+import { NextResponse } from 'next/server';
+import type { ZodError } from 'zod';
 
 /**
- * Shared helpers for the /api/auth/* route handlers.
- *
- * Forms in /sign-in, /sign-up, /confirm POST as standard
- * application/x-www-form-urlencoded (or multipart/form-data — both arrive on
- * the FormData API) and the route handlers respond with 303 redirects that
- * carry Set-Cookie headers. We switched away from JS fetch + JSON because
- * Safari and Chrome silently evict cookies set via XHR responses in some
- * conditions, while cookies set on a 30x navigation response persist
- * normally.
+ * Shared response helpers for the /api/auth/* routes. All routes return JSON
+ * (the client handles redirects with router.push after storing tokens in
+ * localStorage). The error mapper translates Cognito SDK exceptions into
+ * stable machine-readable codes the client can branch on.
  */
 
-/**
- * Parse the form-encoded body of a POST request into a plain object. Returns
- * an empty object if parsing fails or content-type doesn't look like a form.
- */
-export async function parseFormBody(request: NextRequest): Promise<Record<string, string>> {
-  try {
-    const formData = await request.formData();
-    const out: Record<string, string> = {};
-    for (const [k, v] of formData.entries()) {
-      if (typeof v === 'string') out[k] = v;
-    }
-    return out;
-  } catch {
-    return {};
-  }
+export function badInput(err: ZodError): NextResponse<AuthErrorResponse> {
+  return NextResponse.json(
+    { code: 'invalid_input', message: err.issues[0]?.message ?? 'Invalid input' },
+    { status: 400 },
+  );
 }
 
 interface CognitoErrorLike {
@@ -41,21 +28,18 @@ function isCognitoError(err: unknown): err is CognitoErrorLike {
 }
 
 /**
- * Map a Cognito SDK exception to a stable, lowercase error code we use as
- * the ?error=... query param on the form-page redirect. The form page
- * translates the code into a human-readable message.
+ * Map a Cognito SDK error to an HTTP response with a stable error code.
+ * The `flow` parameter scopes the mapping — same Cognito exception name can
+ * mean different things in sign-in vs sign-up vs confirm contexts.
  *
- * The `flow` parameter scopes the mapping — same Cognito exception name
- * can mean different things in sign-in vs sign-up vs confirm contexts.
- *
- * Security: sign-in collapses NotAuthorizedException and
- * UserNotFoundException into a single `invalid_credentials` code so we
- * don't leak which addresses have accounts.
+ * Security note: sign-in deliberately collapses NotAuthorizedException and
+ * UserNotFoundException into a single generic message so we don't reveal
+ * which addresses have accounts.
  */
-export function extractCognitoErrorCode(
+export function authErrorFromCognito(
   err: unknown,
   flow: 'sign-in' | 'sign-up' | 'confirm' | 'resend',
-): string {
+): NextResponse<AuthErrorResponse> {
   const name = isCognitoError(err) ? err.name : undefined;
   const message = isCognitoError(err) ? err.message : undefined;
 
@@ -64,22 +48,57 @@ export function extractCognitoErrorCode(
   switch (name) {
     case 'NotAuthorizedException':
     case 'UserNotFoundException':
-      if (flow === 'sign-in') return 'invalid_credentials';
-      return 'auth_failed';
+      if (flow === 'sign-in') {
+        return NextResponse.json(
+          { code: 'invalid_credentials', message: 'Incorrect email or password.' },
+          { status: 401 },
+        );
+      }
+      break;
     case 'UserNotConfirmedException':
-      return 'user_not_confirmed';
+      return NextResponse.json(
+        { code: 'user_not_confirmed', message: 'Please confirm your email before signing in.' },
+        { status: 403 },
+      );
     case 'UsernameExistsException':
-      return 'email_exists';
+      return NextResponse.json(
+        { code: 'email_exists', message: 'An account already exists for that email.' },
+        { status: 409 },
+      );
     case 'InvalidPasswordException':
-      return 'weak_password';
+      return NextResponse.json(
+        {
+          code: 'weak_password',
+          message:
+            message ??
+            'Password does not meet requirements (min 8 chars, with upper, lower, digit, and symbol).',
+        },
+        { status: 400 },
+      );
     case 'CodeMismatchException':
-      return 'code_mismatch';
+      return NextResponse.json(
+        { code: 'code_mismatch', message: 'The confirmation code is incorrect.' },
+        { status: 400 },
+      );
     case 'ExpiredCodeException':
-      return 'code_expired';
+      return NextResponse.json(
+        { code: 'code_expired', message: 'The confirmation code has expired. Request a new one.' },
+        { status: 400 },
+      );
     case 'LimitExceededException':
-      return 'rate_limited';
+      return NextResponse.json(
+        { code: 'rate_limited', message: 'Too many attempts. Please wait and try again.' },
+        { status: 429 },
+      );
     case 'InvalidParameterException':
-      return 'invalid_input';
+      return NextResponse.json(
+        { code: 'invalid_input', message: message ?? 'Invalid input.' },
+        { status: 400 },
+      );
   }
-  return 'auth_failed';
+
+  return NextResponse.json(
+    { code: 'auth_failed', message: 'Something went wrong. Please try again.' },
+    { status: 500 },
+  );
 }

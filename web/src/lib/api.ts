@@ -1,21 +1,16 @@
 import 'server-only';
 
-import { cookies } from 'next/headers';
-
 import { getApiUrl } from './env';
-import { COOKIE_NAMES } from './session';
 
 /**
- * Server-side helper for calling the Stablebook API as the current user.
+ * Server-side helper for calling the Stablebook backend API as the current
+ * user. The access token is passed in by the route handler (extracted from
+ * the request's Authorization header — see /api/vehicles/route.ts) rather
+ * than read from cookies, because client tokens now live in localStorage and
+ * are sent on every XHR via the Authorization: Bearer header.
  *
- * Pulls the access-token cookie set by `/api/auth/callback`, forwards it as
- * a Bearer to API Gateway, which validates the JWT against Cognito before
- * the Lambda even runs. `cache: 'no-store'` because vehicles are per-user
- * data — never safe to cache cross-request.
- *
- * If there's no access-token cookie, throws `UnauthenticatedError`. Server
- * components should let it propagate to a redirect or 401 boundary; route
- * handlers should map it to a 401 response.
+ * `cache: 'no-store'` because vehicles are per-user data — never safe to
+ * cache cross-request.
  */
 
 export class UnauthenticatedError extends Error {
@@ -35,11 +30,12 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const store = await cookies();
-  const accessToken = store.get(COOKIE_NAMES.ACCESS)?.value;
+export async function apiFetch<T>(
+  accessToken: string | null,
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
   if (!accessToken) throw new UnauthenticatedError();
-
   const res = await fetch(`${getApiUrl()}${path}`, {
     ...init,
     headers: {
@@ -49,10 +45,17 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
     },
     cache: 'no-store',
   });
-
   if (!res.ok) {
     const body = await res.text();
     throw new ApiError(res.status, body);
   }
   return (await res.json()) as T;
+}
+
+/** Extract a Bearer token from the standard Authorization header. */
+export function bearerFromRequest(request: Request): string | null {
+  const auth = request.headers.get('authorization');
+  if (!auth) return null;
+  const match = auth.match(/^Bearer\s+(.+)$/i);
+  return match?.[1] ?? null;
 }

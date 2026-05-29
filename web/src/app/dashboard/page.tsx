@@ -1,21 +1,46 @@
+'use client';
+
 import type { ListVehiclesResponse } from '@stablebook/shared';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import { buttonVariants } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { apiFetch } from '@/lib/api';
-import { getSession } from '@/lib/session';
+import { apiFetch, clearTokens, readSession, type StoredSession } from '@/lib/auth-client';
 
-export default async function DashboardPage() {
-  // Edge proxy did a fast-pass redirect for missing cookies. This is the real
-  // authorization check: a forged cookie wouldn't pass JWT verification.
-  const session = await getSession();
-  if (!session) {
-    redirect('/?signin=required');
+export default function DashboardPage() {
+  const router = useRouter();
+  const [session, setSession] = useState<StoredSession | null>(null);
+  const [vehicles, setVehicles] = useState<ListVehiclesResponse['vehicles'] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const s = readSession();
+    if (!s) {
+      router.replace('/sign-in');
+      return;
+    }
+    setSession(s);
+    apiFetch<ListVehiclesResponse>('/api/vehicles')
+      .then((res) => setVehicles(res.vehicles))
+      .catch((err: unknown) => {
+        if (err instanceof Error && err.message === 'Session expired') {
+          router.replace('/sign-in');
+          return;
+        }
+        setError(err instanceof Error ? err.message : String(err));
+      });
+  }, [router]);
+
+  function onSignOut() {
+    clearTokens();
+    router.replace('/');
   }
 
-  const { vehicles } = await apiFetch<ListVehiclesResponse>('/v1/vehicles');
+  if (!session) {
+    return null; // brief flash before redirect runs
+  }
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-16">
@@ -37,12 +62,21 @@ export default async function DashboardPage() {
           </Link>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
-          {vehicles.length === 0 ? (
+          {error && (
+            <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+              {error}
+            </p>
+          )}
+          {vehicles === null && !error && (
+            <p className="text-zinc-500">Loading…</p>
+          )}
+          {vehicles !== null && vehicles.length === 0 && (
             <p className="text-zinc-600 dark:text-zinc-400">
               No vehicles yet. Click <span className="font-medium">Add a vehicle</span> to get
               started.
             </p>
-          ) : (
+          )}
+          {vehicles !== null && vehicles.length > 0 && (
             <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
               {vehicles.map((v) => (
                 <li key={v.id} className="flex items-baseline justify-between py-2">
@@ -67,10 +101,6 @@ export default async function DashboardPage() {
           <CardTitle>Your session</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-          <p>
-            <span className="font-mono text-xs">cognito_sub:</span>{' '}
-            <span className="font-mono text-xs">{session.cognitoSub}</span>
-          </p>
           {session.email && (
             <p>
               <span className="font-mono text-xs">email:</span>{' '}
@@ -79,15 +109,17 @@ export default async function DashboardPage() {
           )}
           <p>
             <span className="font-mono text-xs">access_token expires:</span>{' '}
-            <span className="font-mono text-xs">{new Date(session.expiresAt).toISOString()}</span>
+            <span className="font-mono text-xs">
+              {new Date(session.expiresAt * 1000).toISOString()}
+            </span>
           </p>
         </CardContent>
       </Card>
 
       <div>
-        <Link href="/api/auth/sign-out" className={buttonVariants({ variant: 'outline' })}>
+        <Button variant="outline" onClick={onSignOut}>
           Sign out
-        </Link>
+        </Button>
       </div>
     </main>
   );

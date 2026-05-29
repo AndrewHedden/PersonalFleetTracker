@@ -18,6 +18,13 @@ export const SignInInputSchema = z.object({
 });
 export type SignInInput = z.infer<typeof SignInInputSchema>;
 
+export const SignInResponseSchema = z.object({
+  accessToken: z.string(),
+  idToken: z.string(),
+  expiresIn: z.number().int().positive(),
+});
+export type SignInResponse = z.infer<typeof SignInResponseSchema>;
+
 export const SignUpInputSchema = z.object({
   email: EmailSchema,
   password: PasswordSchema,

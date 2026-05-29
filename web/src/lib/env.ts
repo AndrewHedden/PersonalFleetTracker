@@ -8,8 +8,10 @@
  *   NEXT_PUBLIC_AWS_REGION       us-east-1
  *   COGNITO_USER_POOL_ID         e.g. us-east-1_MYtNDBVTj
  *   COGNITO_APP_CLIENT_ID        e.g. 4ikt4vl47ugh8u17s02oaakrgi
- *   COGNITO_DOMAIN_URL           https://stablebook-<stage>.auth.<region>.amazoncognito.com
  *   API_URL                      https://<id>.execute-api.<region>.amazonaws.com
+ *
+ * COGNITO_DOMAIN_URL is no longer required — we use Cognito's InitiateAuth
+ * API directly from our route handlers rather than the Hosted UI.
  */
 
 function requireEnv(name: string): string {
@@ -25,8 +27,6 @@ export function getCognitoConfig() {
     region: requireEnv('NEXT_PUBLIC_AWS_REGION'),
     userPoolId: requireEnv('COGNITO_USER_POOL_ID'),
     clientId: requireEnv('COGNITO_APP_CLIENT_ID'),
-    /** Hosted UI base URL, e.g. https://stablebook-andrew.auth.us-east-1.amazoncognito.com */
-    domainUrl: requireEnv('COGNITO_DOMAIN_URL'),
   };
 }
 

@@ -1,22 +1,29 @@
-import { cookies } from 'next/headers';
+'use client';
+
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { COOKIE_NAMES } from '@/lib/session';
+import { readSession } from '@/lib/auth-client';
 
 import { VehicleForm } from './vehicle-form';
 
-// Lightweight cookie-presence check — we don't verify the JWT here because the
-// form's `/api/vehicles` route handler and API Gateway's JWT authorizer are
-// the load-bearing checks. A forged cookie passes this gate but can't
-// actually create a vehicle.
-export default async function NewVehiclePage() {
-  const store = await cookies();
-  if (!store.get(COOKIE_NAMES.ACCESS)) {
-    redirect('/?signin=required');
-  }
+export default function NewVehiclePage() {
+  const router = useRouter();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const s = readSession();
+    if (!s) {
+      router.replace('/sign-in');
+      return;
+    }
+    setReady(true);
+  }, [router]);
+
+  if (!ready) return null;
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-16">

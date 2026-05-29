@@ -1,17 +1,28 @@
+'use client';
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import { buttonVariants } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getSession } from '@/lib/session';
+import { clearTokens, readSession, type StoredSession } from '@/lib/auth-client';
 
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ signin?: string }>;
-}) {
-  const session = await getSession();
-  const params = await searchParams;
-  const signinRequired = params?.signin === 'required';
+export default function HomePage() {
+  const router = useRouter();
+  const [session, setSession] = useState<StoredSession | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setSession(readSession());
+    setHydrated(true);
+  }, []);
+
+  function onSignOut() {
+    clearTokens();
+    setSession(null);
+    router.refresh();
+  }
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-8 px-6 py-16">
@@ -29,23 +40,20 @@ export default async function HomePage({
       <Card>
         <CardHeader>
           <CardTitle>
-            {session ? `Signed in as ${session.email ?? session.username}` : 'Get started'}
+            {hydrated && session
+              ? `Signed in as ${session.email ?? 'you'}`
+              : 'Get started'}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          {signinRequired && !session && (
-            <p className="text-sm text-amber-600 dark:text-amber-500">
-              Please sign in to access that page.
-            </p>
-          )}
-          {session ? (
+          {hydrated && session ? (
             <div className="flex gap-2">
               <Link href="/dashboard" className={buttonVariants({ variant: 'default' })}>
                 Open dashboard
               </Link>
-              <Link href="/api/auth/sign-out" className={buttonVariants({ variant: 'outline' })}>
+              <Button variant="outline" onClick={onSignOut}>
                 Sign out
-              </Link>
+              </Button>
             </div>
           ) : (
             <div className="flex gap-2">

@@ -1,21 +1,33 @@
-import { CreateVehicleInputSchema, type Vehicle } from '@stablebook/shared';
+import {
+  CreateVehicleInputSchema,
+  type ListVehiclesResponse,
+  type Vehicle,
+} from '@stablebook/shared';
 import type { NextRequest } from 'next/server';
 
-import { apiFetch, ApiError, UnauthenticatedError } from '@/lib/api';
+import { apiFetch, ApiError, UnauthenticatedError, bearerFromRequest } from '@/lib/api';
 
 /**
- * POST /api/vehicles — proxy from the browser to the backend `POST /v1/vehicles`.
+ * GET /api/vehicles — proxy for the current user's vehicle list.
+ * POST /api/vehicles — proxy for creating a vehicle.
  *
- * Exists because Next.js 16 server actions (over multipart/form-data) don't
- * reliably forward the user's `sb_access` cookie through CloudFront/OpenNext
- * in our setup — the cookie header arrives empty at the Lambda. Route handlers
- * read cookies normally, so we use this as the form's submit target instead.
- *
- * Validates against `CreateVehicleInputSchema` (the same shape the API uses),
- * forwards the validated body via the server-side `apiFetch` helper which
- * adds the Bearer header.
+ * Both forward the access token from the incoming Authorization header to
+ * the backend API. The client (which stores tokens in localStorage) puts the
+ * Bearer header on every XHR — see web/src/lib/auth-client.ts apiFetch.
  */
+
+export async function GET(request: NextRequest) {
+  const token = bearerFromRequest(request);
+  try {
+    const body = await apiFetch<ListVehiclesResponse>(token, '/v1/vehicles');
+    return Response.json(body);
+  } catch (err) {
+    return mapError(err);
+  }
+}
+
 export async function POST(request: NextRequest) {
+  const token = bearerFromRequest(request);
   let body: unknown;
   try {
     body = await request.json();
@@ -34,21 +46,25 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const created = await apiFetch<Vehicle>('/v1/vehicles', {
+    const created = await apiFetch<Vehicle>(token, '/v1/vehicles', {
       method: 'POST',
       body: JSON.stringify(parsed.data),
     });
     return Response.json(created, { status: 201 });
   } catch (err) {
-    if (err instanceof UnauthenticatedError) {
-      return jsonError(401, 'unauthenticated', 'Sign in required.');
-    }
-    if (err instanceof ApiError) {
-      return jsonError(err.status, 'api_error', err.body || 'API request failed.');
-    }
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    return jsonError(500, 'internal_error', message);
+    return mapError(err);
   }
+}
+
+function mapError(err: unknown): Response {
+  if (err instanceof UnauthenticatedError) {
+    return jsonError(401, 'unauthenticated', 'Sign in required.');
+  }
+  if (err instanceof ApiError) {
+    return jsonError(err.status, 'api_error', err.body || 'API request failed.');
+  }
+  const message = err instanceof Error ? err.message : 'Unknown error';
+  return jsonError(500, 'internal_error', message);
 }
 
 function jsonError(status: number, code: string, message: string, details?: unknown) {

@@ -1,40 +1,22 @@
-import { SignUpInputSchema } from '@stablebook/shared';
+import { SignUpInputSchema, type SignUpResponse } from '@stablebook/shared';
 import { NextResponse, type NextRequest } from 'next/server';
 
 import { signUp } from '@/lib/cognito';
-import { getAppUrl } from '@/lib/env';
 
-import { extractCognitoErrorCode, parseFormBody } from '../_helpers';
+import { authErrorFromCognito, badInput } from '../_helpers';
 
 export async function POST(request: NextRequest) {
-  const appUrl = getAppUrl(request);
-  const body = await parseFormBody(request);
+  const parsed = SignUpInputSchema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return badInput(parsed.error);
 
-  const parsed = SignUpInputSchema.safeParse(body);
-  if (!parsed.success) {
-    return errorRedirect(appUrl, 'invalid_input', body.email);
-  }
-
-  let userConfirmed = false;
   try {
-    ({ userConfirmed } = await signUp(parsed.data.email, parsed.data.password));
+    const { userConfirmed } = await signUp(parsed.data.email, parsed.data.password);
+    const body: SignUpResponse = {
+      email: parsed.data.email,
+      requiresConfirmation: !userConfirmed,
+    };
+    return NextResponse.json(body);
   } catch (err) {
-    return errorRedirect(appUrl, extractCognitoErrorCode(err, 'sign-up'), parsed.data.email);
+    return authErrorFromCognito(err, 'sign-up');
   }
-
-  const nextPath = userConfirmed ? '/sign-in' : '/confirm';
-  const url = new URL(`${appUrl}${nextPath}`);
-  url.searchParams.set('email', parsed.data.email);
-  return NextResponse.redirect(url.toString(), { status: 303 });
-}
-
-function errorRedirect(
-  appUrl: string,
-  errorCode: string,
-  email: string | null | undefined,
-): NextResponse {
-  const url = new URL(`${appUrl}/sign-up`);
-  url.searchParams.set('error', errorCode);
-  if (email) url.searchParams.set('email', email);
-  return NextResponse.redirect(url.toString(), { status: 303 });
 }
