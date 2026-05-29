@@ -3,20 +3,16 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { initiateAuth } from '@/lib/cognito';
 import { getAppUrl } from '@/lib/env';
-import { COOKIE_NAMES, baseCookieOptions } from '@/lib/session';
+import { encodeHandoff } from '@/lib/handoff';
 
 import { extractCognitoErrorCode, parseFormBody } from '../_helpers';
 
 /**
- * Sign in via a standard same-origin form POST. Returns a 302 redirect to
- * /dashboard with sb_access + sb_id Set-Cookie headers — this pattern was
- * empirically verified to persist cookies in Safari and Chrome, where
- * XHR-set cookies were silently evicted even on same-origin same-site
- * requests (see callback debug history in MEMORY.md / git log).
- *
- * Errors redirect back to /sign-in with ?error=<code>, plus &email=<…> so
- * the form is pre-filled. Special case: user_not_confirmed redirects to
- * /confirm with the email pre-filled.
+ * Sign-in form POST. Authenticates via Cognito, then redirects to the
+ * /api/auth/establish handoff endpoint with the tokens encrypted into the
+ * URL. The actual cookie-setting happens on establish's response (a GET →
+ * 302 chain) because browsers silently evict cookies set on responses to
+ * form POSTs — see /web/src/lib/handoff.ts for the long-form story.
  */
 export async function POST(request: NextRequest) {
   const appUrl = getAppUrl(request);
@@ -38,17 +34,16 @@ export async function POST(request: NextRequest) {
     return errorRedirect(appUrl, '/sign-in', code, parsed.data.email);
   }
 
-  const response = NextResponse.redirect(`${appUrl}/dashboard`, { status: 302 });
-  const base = baseCookieOptions();
-  response.cookies.set(COOKIE_NAMES.ACCESS, tokens.accessToken, {
-    ...base,
-    maxAge: tokens.expiresIn,
+  const handoff = encodeHandoff({
+    accessToken: tokens.accessToken,
+    idToken: tokens.idToken,
+    expiresIn: tokens.expiresIn,
+    issuedAt: Math.floor(Date.now() / 1000),
   });
-  response.cookies.set(COOKIE_NAMES.ID, tokens.idToken, {
-    ...base,
-    maxAge: tokens.expiresIn,
-  });
-  return response;
+
+  const establishUrl = new URL(`${appUrl}/api/auth/establish`);
+  establishUrl.searchParams.set('h', handoff);
+  return NextResponse.redirect(establishUrl.toString(), { status: 302 });
 }
 
 function errorRedirect(

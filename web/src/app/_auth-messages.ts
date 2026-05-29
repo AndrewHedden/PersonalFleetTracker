@@ -21,6 +21,8 @@ export function authErrorMessage(code: string): string {
       return 'Too many attempts. Please wait and try again.';
     case 'user_not_confirmed':
       return 'Please confirm your email before signing in.';
+    case 'handoff_invalid':
+      return 'Sign-in took too long. Please try again.';
     default:
       return 'Something went wrong. Please try again.';
   }
