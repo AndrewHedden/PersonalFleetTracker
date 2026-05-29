@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { getAppUrl } from '@/lib/env';
 import { COOKIE_NAMES, baseCookieOptions } from '@/lib/session';
 
 /**
@@ -11,8 +12,8 @@ import { COOKIE_NAMES, baseCookieOptions } from '@/lib/session';
  * If neither persists, it's the cookie+redirect pattern itself.
  */
 export async function GET(request: NextRequest) {
-  const origin = new URL(request.url).origin;
-  const response = NextResponse.redirect(`${origin}/api/health`, { status: 302 });
+  const appUrl = getAppUrl(request);
+  const response = NextResponse.redirect(`${appUrl}/api/health`, { status: 302 });
 
   const base = baseCookieOptions();
   response.cookies.set(COOKIE_NAMES.ACCESS, 'fake-access-token-value-for-testing', {
