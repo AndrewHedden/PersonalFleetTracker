@@ -43,7 +43,9 @@ export async function POST(request: NextRequest) {
 
   const establishUrl = new URL(`${appUrl}/api/auth/establish`);
   establishUrl.searchParams.set('h', handoff);
-  return NextResponse.redirect(establishUrl.toString(), { status: 302 });
+  // 303 explicitly tells the client to do a GET on the new location after
+  // the POST — required so /api/auth/establish receives a GET request.
+  return NextResponse.redirect(establishUrl.toString(), { status: 303 });
 }
 
 function errorRedirect(
