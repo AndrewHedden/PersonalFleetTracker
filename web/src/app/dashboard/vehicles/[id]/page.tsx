@@ -1,6 +1,12 @@
 'use client';
 
-import type { FuelEntry, ListFuelEntriesResponse, Vehicle } from '@stablebook/shared';
+import type {
+  FuelEntry,
+  ListFuelEntriesResponse,
+  ListMaintenanceEntriesResponse,
+  MaintenanceEntry,
+  Vehicle,
+} from '@stablebook/shared';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -10,9 +16,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { apiFetch, readSession } from '@/lib/auth-client';
 
 import { FuelQuickAddForm } from './fuel-quick-add';
+import { MaintenanceQuickAddForm } from './maintenance-quick-add';
 
-/** How many recent fill-ups to show inline on the vehicle page. */
+/** How many recent entries to show inline on the vehicle page. */
 const RECENT_FUEL_LIMIT = 10;
+const RECENT_MAINTENANCE_LIMIT = 10;
 
 export default function VehicleDetailPage() {
   const router = useRouter();
@@ -21,6 +29,7 @@ export default function VehicleDetailPage() {
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [fuel, setFuel] = useState<FuelEntry[] | null>(null);
+  const [maintenance, setMaintenance] = useState<MaintenanceEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -31,6 +40,17 @@ export default function VehicleDetailPage() {
         // Don't surface fuel-list failures as the page-level error; vehicle
         // details are still useful even if the fuel log can't load.
         setFuel([]);
+      });
+  }, [id]);
+
+  const loadMaintenance = useCallback(() => {
+    return apiFetch<ListMaintenanceEntriesResponse>(
+      `/api/vehicles/${encodeURIComponent(id)}/maintenance`,
+    )
+      .then((res) => setMaintenance(res.entries))
+      .catch(() => {
+        // Same as fuel: a maintenance-list failure shouldn't blank the page.
+        setMaintenance([]);
       });
   }, [id]);
 
@@ -50,7 +70,8 @@ export default function VehicleDetailPage() {
         setError(err instanceof Error ? err.message : String(err));
       });
     void loadFuel();
-  }, [id, router, loadFuel]);
+    void loadMaintenance();
+  }, [id, router, loadFuel, loadMaintenance]);
 
   async function toggleRetired() {
     if (!vehicle) return;
@@ -175,11 +196,65 @@ export default function VehicleDetailPage() {
         </CardContent>
       </Card>
 
+      {/* Secondary task: log maintenance. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Log maintenance</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MaintenanceQuickAddForm vehicleId={id} onCreated={() => void loadMaintenance()} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent maintenance</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          {maintenance === null && <p className="text-zinc-500">Loading…</p>}
+          {maintenance !== null && maintenance.length === 0 && (
+            <p className="text-zinc-600 dark:text-zinc-400">
+              No maintenance logged yet. Use the form above to record a service.
+            </p>
+          )}
+          {maintenance !== null && maintenance.length > 0 && (
+            <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+              {maintenance.slice(0, RECENT_MAINTENANCE_LIMIT).map((m) => (
+                <li key={m.id} className="flex flex-col gap-1 py-2">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="font-mono text-xs text-zinc-500">{m.entryDate}</span>
+                    <span className="text-right tabular-nums">
+                      {Number(m.odometer).toLocaleString()} mi
+                      {m.totalCost !== null && (
+                        <span className="ml-2">${Number(m.totalCost).toFixed(2)}</span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {m.tasks.map((t) => (
+                      <span
+                        key={t.id}
+                        className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                      >
+                        {t.name}
+                      </span>
+                    ))}
+                  </div>
+                  {m.shopName && <span className="text-xs text-zinc-500">{m.shopName}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+          {maintenance !== null && maintenance.length > RECENT_MAINTENANCE_LIMIT && (
+            <p className="pt-1 text-xs text-zinc-500">
+              Showing the {RECENT_MAINTENANCE_LIMIT} most recent of {maintenance.length} entries.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Secondary actions. */}
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" disabled title="Maintenance logging is coming soon">
-          Add maintenance
-        </Button>
         <Link href={editHref} className={buttonVariants({ variant: 'outline' })}>
           Edit details
         </Link>
