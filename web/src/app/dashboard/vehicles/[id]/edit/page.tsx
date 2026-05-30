@@ -83,7 +83,10 @@ export default function EditVehiclePage() {
         });
         router.push(`/dashboard/vehicles/${encodeURIComponent(id)}`);
       } catch (err) {
-        if (err instanceof Error && (err.message === 'Not signed in' || err.message === 'Session expired')) {
+        if (
+          err instanceof Error &&
+          (err.message === 'Not signed in' || err.message === 'Session expired')
+        ) {
           router.replace('/sign-in');
           return;
         }

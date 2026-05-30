@@ -63,7 +63,9 @@ export async function initiateAuth(email: string, password: string): Promise<Aut
   if (!result?.AccessToken || !result.IdToken) {
     // Either a challenge was returned (MFA, password reset, etc.) or the
     // response shape was unexpected. We don't currently support challenges.
-    throw new Error('Authentication did not return tokens — challenge response or unsupported flow');
+    throw new Error(
+      'Authentication did not return tokens — challenge response or unsupported flow',
+    );
   }
   return {
     accessToken: result.AccessToken,

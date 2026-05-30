@@ -67,9 +67,7 @@ export default function DashboardPage() {
               {error}
             </p>
           )}
-          {vehicles === null && !error && (
-            <p className="text-zinc-500">Loading…</p>
-          )}
+          {vehicles === null && !error && <p className="text-zinc-500">Loading…</p>}
           {vehicles !== null && vehicles.length === 0 && (
             <p className="text-zinc-600 dark:text-zinc-400">
               No vehicles yet. Click <span className="font-medium">Add a vehicle</span> to get

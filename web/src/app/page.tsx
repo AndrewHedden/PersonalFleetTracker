@@ -40,9 +40,7 @@ export default function HomePage() {
       <Card>
         <CardHeader>
           <CardTitle>
-            {hydrated && session
-              ? `Signed in as ${session.email ?? 'you'}`
-              : 'Get started'}
+            {hydrated && session ? `Signed in as ${session.email ?? 'you'}` : 'Get started'}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">

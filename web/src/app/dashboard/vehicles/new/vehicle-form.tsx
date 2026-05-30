@@ -68,7 +68,10 @@ export function VehicleForm() {
         });
         router.push('/dashboard');
       } catch (err) {
-        if (err instanceof Error && (err.message === 'Not signed in' || err.message === 'Session expired')) {
+        if (
+          err instanceof Error &&
+          (err.message === 'Not signed in' || err.message === 'Session expired')
+        ) {
           router.push('/sign-in');
           return;
         }

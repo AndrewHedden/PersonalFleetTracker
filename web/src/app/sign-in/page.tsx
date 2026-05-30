@@ -29,10 +29,7 @@ export default function SignInPage() {
           </Link>
         </p>
         <p>
-          <Link
-            href="/forgot-password"
-            className="font-medium underline-offset-4 hover:underline"
-          >
+          <Link href="/forgot-password" className="font-medium underline-offset-4 hover:underline">
             Forgot your password?
           </Link>
         </p>

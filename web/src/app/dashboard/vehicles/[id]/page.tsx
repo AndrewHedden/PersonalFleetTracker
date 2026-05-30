@@ -116,13 +116,14 @@ export default function VehicleDetailPage() {
             <Detail label="VIN" value={vehicle.vin} mono />
             <Detail
               label="Purchase odometer"
-              value={vehicle.purchaseOdometer !== null ? `${vehicle.purchaseOdometer.toLocaleString()} mi` : null}
+              value={
+                vehicle.purchaseOdometer !== null
+                  ? `${vehicle.purchaseOdometer.toLocaleString()} mi`
+                  : null
+              }
             />
             {retired && vehicle.retiredAt && (
-              <Detail
-                label="Retired"
-                value={new Date(vehicle.retiredAt).toLocaleDateString()}
-              />
+              <Detail label="Retired" value={new Date(vehicle.retiredAt).toLocaleDateString()} />
             )}
           </dl>
         </CardContent>

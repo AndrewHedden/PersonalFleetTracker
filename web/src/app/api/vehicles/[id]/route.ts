@@ -12,10 +12,7 @@ import { apiFetch, ApiError, UnauthenticatedError, bearerFromRequest } from '@/l
  * that header on every XHR — see web/src/lib/auth-client.ts apiFetch.
  */
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const token = bearerFromRequest(request);
   try {
@@ -26,10 +23,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const token = bearerFromRequest(request);
 

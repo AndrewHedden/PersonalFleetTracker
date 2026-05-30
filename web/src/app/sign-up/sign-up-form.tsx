@@ -1,10 +1,6 @@
 'use client';
 
-import {
-  type AuthErrorResponse,
-  SignUpInputSchema,
-  type SignUpResponse,
-} from '@stablebook/shared';
+import { type AuthErrorResponse, SignUpInputSchema, type SignUpResponse } from '@stablebook/shared';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 
