@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { apiFetch, readSession } from '@/lib/auth-client';
 
 import { FuelQuickAddForm } from './fuel-quick-add';
@@ -32,6 +33,11 @@ export default function VehicleDetailPage() {
   const [maintenance, setMaintenance] = useState<MaintenanceEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Delete flow (retired vehicles only): two-step confirm — reveal, then
+  // type the nickname to enable the final destructive action.
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const loadFuel = useCallback(() => {
     return apiFetch<ListFuelEntriesResponse>(`/api/vehicles/${encodeURIComponent(id)}/fuel`)
@@ -89,6 +95,29 @@ export default function VehicleDetailPage() {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function deleteVehicle() {
+    if (!vehicle) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      await apiFetch<{ id: string; deleted: boolean }>(`/api/vehicles/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+      // Gone — back to the dashboard, replacing history so Back doesn't 404.
+      router.replace('/dashboard');
+    } catch (err) {
+      if (
+        err instanceof Error &&
+        (err.message === 'Not signed in' || err.message === 'Session expired')
+      ) {
+        router.replace('/sign-in');
+        return;
+      }
+      setError(err instanceof Error ? err.message : String(err));
+      setDeleting(false);
     }
   }
 
@@ -262,6 +291,59 @@ export default function VehicleDetailPage() {
           {busy ? 'Saving…' : retired ? 'Bring back' : 'Retire'}
         </Button>
       </div>
+
+      {/* Danger zone — only a retired vehicle can be deleted, behind a
+          two-step confirmation. */}
+      {retired && (
+        <Card className="ring-destructive/30">
+          <CardHeader>
+            <CardTitle className="text-destructive">Danger zone</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Permanently delete this vehicle and <strong>all</strong> of its fuel and maintenance
+              history. This cannot be undone.
+            </p>
+            {!confirmingDelete ? (
+              <Button variant="destructive" onClick={() => setConfirmingDelete(true)}>
+                Delete vehicle…
+              </Button>
+            ) : (
+              <div className="space-y-3 rounded-md border border-destructive/30 bg-destructive/5 p-3">
+                <p>
+                  Type <span className="font-mono font-medium">{vehicle.nickname}</span> to confirm.
+                </p>
+                <Input
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  placeholder={vehicle.nickname}
+                  aria-label="Type the vehicle nickname to confirm deletion"
+                  autoComplete="off"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    variant="destructive"
+                    onClick={deleteVehicle}
+                    disabled={deleting || confirmText !== vehicle.nickname}
+                  >
+                    {deleting ? 'Deleting…' : 'Permanently delete'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setConfirmingDelete(false);
+                      setConfirmText('');
+                    }}
+                    disabled={deleting}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </main>
   );
 }
