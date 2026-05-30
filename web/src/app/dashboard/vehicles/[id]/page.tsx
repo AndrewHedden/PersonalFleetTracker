@@ -116,6 +116,15 @@ export default function VehicleDetailPage() {
   const subtitle = [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(' ');
   const editHref = `/dashboard/vehicles/${encodeURIComponent(id)}/edit`;
 
+  // Latest odometer reading: the highest value across logged fuel + maintenance
+  // entries (odometer is monotonic), falling back to the purchase odometer.
+  const odometerReadings = [
+    ...(fuel ?? []).map((e) => e.odometer),
+    ...(maintenance ?? []).map((m) => m.odometer),
+  ];
+  const latestOdometer =
+    odometerReadings.length > 0 ? Math.max(...odometerReadings) : vehicle.purchaseOdometer;
+
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-16">
       {/* Compact identity header — full specs live on the edit page. */}
@@ -134,6 +143,9 @@ export default function VehicleDetailPage() {
             {subtitle || 'No details yet'}
             {vehicle.licensePlate && (
               <span className="ml-2 font-mono text-xs">{vehicle.licensePlate}</span>
+            )}
+            {latestOdometer !== null && (
+              <span className="ml-2">· {latestOdometer.toLocaleString()} mi</span>
             )}
           </p>
         </div>
