@@ -3,11 +3,16 @@
 import type { FuelEntry, ListFuelEntriesResponse, Vehicle } from '@stablebook/shared';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { apiFetch, readSession } from '@/lib/auth-client';
+
+import { FuelQuickAddForm } from './fuel-quick-add';
+
+/** How many recent fill-ups to show inline on the vehicle page. */
+const RECENT_FUEL_LIMIT = 10;
 
 export default function VehicleDetailPage() {
   const router = useRouter();
@@ -18,6 +23,16 @@ export default function VehicleDetailPage() {
   const [fuel, setFuel] = useState<FuelEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const loadFuel = useCallback(() => {
+    return apiFetch<ListFuelEntriesResponse>(`/api/vehicles/${encodeURIComponent(id)}/fuel`)
+      .then((res) => setFuel(res.entries))
+      .catch(() => {
+        // Don't surface fuel-list failures as the page-level error; vehicle
+        // details are still useful even if the fuel log can't load.
+        setFuel([]);
+      });
+  }, [id]);
 
   useEffect(() => {
     const s = readSession();
@@ -34,14 +49,8 @@ export default function VehicleDetailPage() {
         }
         setError(err instanceof Error ? err.message : String(err));
       });
-    apiFetch<ListFuelEntriesResponse>(`/api/vehicles/${encodeURIComponent(id)}/fuel`)
-      .then((res) => setFuel(res.entries))
-      .catch(() => {
-        // Don't surface fuel-list failures as the page-level error; vehicle
-        // details are still useful even if the fuel log can't load.
-        setFuel([]);
-      });
-  }, [id, router]);
+    void loadFuel();
+  }, [id, router, loadFuel]);
 
   async function toggleRetired() {
     if (!vehicle) return;
@@ -83,10 +92,13 @@ export default function VehicleDetailPage() {
   }
 
   const retired = vehicle.retiredAt !== null;
+  const subtitle = [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(' ');
+  const editHref = `/dashboard/vehicles/${encodeURIComponent(id)}/edit`;
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-16">
-      <header className="flex items-baseline justify-between">
+      {/* Compact identity header — full specs live on the edit page. */}
+      <header className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Vehicle</p>
           <h1 className="text-3xl font-semibold tracking-tight">
@@ -97,8 +109,14 @@ export default function VehicleDetailPage() {
               </span>
             )}
           </h1>
+          <p className="mt-1 text-sm text-zinc-500">
+            {subtitle || 'No details yet'}
+            {vehicle.licensePlate && (
+              <span className="ml-2 font-mono text-xs">{vehicle.licensePlate}</span>
+            )}
+          </p>
         </div>
-        <Link href="/dashboard" className={buttonVariants({ variant: 'outline' })}>
+        <Link href="/dashboard" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
           Back
         </Link>
       </header>
@@ -109,55 +127,30 @@ export default function VehicleDetailPage() {
         </p>
       )}
 
+      {/* Primary task: log a fill-up inline, no navigation. */}
       <Card>
         <CardHeader>
-          <CardTitle>Details</CardTitle>
+          <CardTitle>Log a fill-up</CardTitle>
         </CardHeader>
         <CardContent>
-          <dl className="grid grid-cols-2 gap-y-3 text-sm">
-            <Detail label="Year" value={vehicle.year} />
-            <Detail label="Make" value={vehicle.make} />
-            <Detail label="Model" value={vehicle.model} />
-            <Detail label="Trim" value={vehicle.trim} />
-            <Detail label="Color" value={vehicle.color} />
-            <Detail label="License plate" value={vehicle.licensePlate} mono />
-            <Detail label="VIN" value={vehicle.vin} mono />
-            <Detail
-              label="Purchase odometer"
-              value={
-                vehicle.purchaseOdometer !== null
-                  ? `${vehicle.purchaseOdometer.toLocaleString()} mi`
-                  : null
-              }
-            />
-            {retired && vehicle.retiredAt && (
-              <Detail label="Retired" value={new Date(vehicle.retiredAt).toLocaleDateString()} />
-            )}
-          </dl>
+          <FuelQuickAddForm vehicleId={id} onCreated={() => void loadFuel()} />
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle>Fuel log</CardTitle>
-          <Link
-            href={`/dashboard/vehicles/${encodeURIComponent(id)}/fuel/new`}
-            className={buttonVariants({ variant: 'default', size: 'sm' })}
-          >
-            Log fill-up
-          </Link>
+        <CardHeader>
+          <CardTitle>Recent fill-ups</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           {fuel === null && <p className="text-zinc-500">Loading…</p>}
           {fuel !== null && fuel.length === 0 && (
             <p className="text-zinc-600 dark:text-zinc-400">
-              No fuel entries yet. Click <span className="font-medium">Log fill-up</span> to add the
-              first one.
+              No fuel entries yet. Use the form above to log your first fill-up.
             </p>
           )}
           {fuel !== null && fuel.length > 0 && (
             <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
-              {fuel.map((e) => (
+              {fuel.slice(0, RECENT_FUEL_LIMIT).map((e) => (
                 <li key={e.id} className="grid grid-cols-[auto_1fr_auto] items-baseline gap-3 py-2">
                   <span className="font-mono text-xs text-zinc-500">{e.entryDate}</span>
                   <span>
@@ -174,39 +167,26 @@ export default function VehicleDetailPage() {
               ))}
             </ul>
           )}
+          {fuel !== null && fuel.length > RECENT_FUEL_LIMIT && (
+            <p className="pt-1 text-xs text-zinc-500">
+              Showing the {RECENT_FUEL_LIMIT} most recent of {fuel.length} entries.
+            </p>
+          )}
         </CardContent>
       </Card>
 
-      <div className="flex gap-2">
-        <Link
-          href={`/dashboard/vehicles/${encodeURIComponent(id)}/edit`}
-          className={buttonVariants({ variant: 'default' })}
-        >
-          Edit
+      {/* Secondary actions. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Button variant="outline" disabled title="Maintenance logging is coming soon">
+          Add maintenance
+        </Button>
+        <Link href={editHref} className={buttonVariants({ variant: 'outline' })}>
+          Edit details
         </Link>
-        <Button variant="outline" onClick={toggleRetired} disabled={busy}>
+        <Button variant="ghost" onClick={toggleRetired} disabled={busy}>
           {busy ? 'Saving…' : retired ? 'Bring back' : 'Retire'}
         </Button>
       </div>
     </main>
-  );
-}
-
-function Detail({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: string | number | null;
-  mono?: boolean;
-}) {
-  return (
-    <>
-      <dt className="text-zinc-500">{label}</dt>
-      <dd className={value === null || value === '' ? 'text-zinc-400' : mono ? 'font-mono' : ''}>
-        {value === null || value === '' ? '—' : value}
-      </dd>
-    </>
   );
 }

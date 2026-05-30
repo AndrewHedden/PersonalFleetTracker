@@ -2,7 +2,7 @@
 
 A personal fleet tracker: log fuel and maintenance for the vehicles you own, get reminders before routine maintenance comes due. Web app + native iOS companion, deployed on AWS.
 
-> Status: **Phase 3a complete + AWS live.** Web, API, RDS, Cognito, and a one-shot Migrator Lambda are all deployed to the `andrew` stage. Phase 3b (auth UI) and Phase 3c (Vehicles CRUD) are next.
+> Status: **Web app live through fuel logging.** Phases 0–3 are complete and deployed to the `andrew` stage — infra (VPC, RDS, Cognito, API Gateway + Lambda, Migrator Lambda), a custom Cognito auth UI, Vehicles CRUD, and fuel-entry logging on a fuel-first vehicle page. Next up: the rest of Phase 5 (maintenance entry + reminders engine), then the iOS app shell (Phase 4).
 
 ## Features (planned)
 
@@ -140,10 +140,10 @@ pnpm --filter @stablebook/infra sst:remove --stage andrew
 | **1** | ✅ Drizzle schema (`users`, `vehicles`, `fuel_entries`, 4 × `maintenance_*`), initial migration, seeded task catalog |
 | **2** | ✅ SST v3 stacks: VPC (no NAT), RDS Postgres `t4g.micro`, Cognito user pool + client, API Gateway HTTP API + Lambda, Next.js site |
 | **3a** | ✅ Next.js 16 (App Router, TS, Tailwind v4, ESLint, Turbopack) scaffolded into the workspace as `@stablebook/web` |
-| 3b    | shadcn/ui + Cognito sign-in (web)                                                                                |
-| 3c    | First end-to-end vertical slice: Vehicles CRUD (schema → Lambda → Next.js login-gated page)                      |
+| **3b** | ✅ shadcn/ui + custom Cognito auth UI (sign-in / sign-up / confirm / password reset; replaced the Hosted UI)     |
+| **3c** | ✅ First end-to-end vertical slice: Vehicles CRUD (schema → Lambda → Next.js login-gated pages, incl. detail / edit / retire) |
 | 4     | iOS app shell: SwiftUI scaffold, Amplify Swift + Cognito sign-in, vehicles list against the same API             |
-| 5     | Fuel + maintenance entry flows; reminders engine                                                                 |
+| **5** | 🚧 Fuel + maintenance entry flows; reminders engine. ✅ Fuel logging on a fuel-first vehicle page (inline quick-add). Maintenance entry + reminders next. |
 | 6     | Receipt photos (S3 presigned uploads); polish; TestFlight                                                        |
 
 ## License
