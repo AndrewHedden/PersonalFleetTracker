@@ -15,12 +15,10 @@ companion, deployed to AWS, engineered to stay inside the AWS Free Tier.
 
 > Update this section before switching machines — it's the handoff note.
 
-- **Last landed:** Phase 5.1 — fuel entries (log fill-ups, list on vehicle detail), commit `4446eea`.
-- **Next up:** finish Phase 5 — maintenance entry flow + reminders engine (both mileage- and time-based intervals).
-- **Then:** Phase 6 — receipt photos (S3 presigned uploads), polish, TestFlight.
-- **Loose ends:**
-  - This roadmap context supersedes the stale table in `README.md` (README still says "Phase 3a complete" — needs a refresh).
-  - Two stale remote branches to clean up: `origin/feat/phase-3b-auth`, `origin/chore/rename-stablebook`.
+- **Last landed (`489cbcf`, all merged + deployed to the `andrew` stage):** Phase 5 entry flows complete — fuel-first vehicle page (inline quick-add), maintenance entry flow (with custom-task creation), fuel-form auto-calc (derive the 3rd money field), delete-retired-vehicle (`DELETE /v1/vehicles/{id}`, double-confirm UI, cascade), and latest-odometer in the vehicle header.
+- **Next up:** the **maintenance reminders engine** — the last piece of Phase 5. The `maintenance_schedules` tables exist (mileage + time intervals); needs API handlers + a "due soon" computation + UI.
+- **Then:** Phase 4 iOS app shell (today `ios/` is just a README stub), then Phase 6 — receipt photos (S3 presigned uploads), polish, TestFlight.
+- **Deploys from this machine:** AWS creds are under the `pft` profile; the gitignored `.env` (mise-loaded) sets `AWS_PROFILE=pft` + `AWS_REGION=us-east-1`. Deploy: `pnpm --filter @stablebook/infra sst:deploy --stage andrew`.
 
 ## Stack
 
