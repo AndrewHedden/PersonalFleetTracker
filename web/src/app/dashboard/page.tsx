@@ -78,19 +78,34 @@ export default function DashboardPage() {
           )}
           {vehicles !== null && vehicles.length > 0 && (
             <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
-              {vehicles.map((v) => (
-                <li key={v.id} className="flex items-baseline justify-between py-2">
-                  <div>
-                    <div className="font-medium">{v.nickname}</div>
-                    <div className="text-xs text-zinc-500">
-                      {[v.year, v.make, v.model].filter(Boolean).join(' ')}
-                    </div>
-                  </div>
-                  {v.licensePlate && (
-                    <span className="font-mono text-xs text-zinc-500">{v.licensePlate}</span>
-                  )}
-                </li>
-              ))}
+              {vehicles.map((v) => {
+                const retired = v.retiredAt !== null;
+                return (
+                  <li key={v.id}>
+                    <Link
+                      href={`/dashboard/vehicles/${encodeURIComponent(v.id)}`}
+                      className={`-mx-3 flex items-baseline justify-between rounded px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 ${retired ? 'opacity-60' : ''}`}
+                    >
+                      <div>
+                        <div className="font-medium">
+                          {v.nickname}
+                          {retired && (
+                            <span className="ml-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                              Retired
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-zinc-500">
+                          {[v.year, v.make, v.model].filter(Boolean).join(' ')}
+                        </div>
+                      </div>
+                      {v.licensePlate && (
+                        <span className="font-mono text-xs text-zinc-500">{v.licensePlate}</span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </CardContent>

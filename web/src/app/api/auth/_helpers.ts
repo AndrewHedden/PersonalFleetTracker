@@ -38,7 +38,7 @@ function isCognitoError(err: unknown): err is CognitoErrorLike {
  */
 export function authErrorFromCognito(
   err: unknown,
-  flow: 'sign-in' | 'sign-up' | 'confirm' | 'resend',
+  flow: 'sign-in' | 'sign-up' | 'confirm' | 'resend' | 'forgot-password' | 'reset-password',
 ): NextResponse<AuthErrorResponse> {
   const name = isCognitoError(err) ? err.name : undefined;
   const message = isCognitoError(err) ? err.message : undefined;

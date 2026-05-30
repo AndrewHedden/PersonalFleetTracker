@@ -51,6 +51,19 @@ export const ResendConfirmationInputSchema = z.object({
 });
 export type ResendConfirmationInput = z.infer<typeof ResendConfirmationInputSchema>;
 
+export const ForgotPasswordInputSchema = z.object({
+  email: EmailSchema,
+});
+export type ForgotPasswordInput = z.infer<typeof ForgotPasswordInputSchema>;
+
+export const ResetPasswordInputSchema = z.object({
+  email: EmailSchema,
+  // Cognito's reset code is also 6 digits by default.
+  code: z.string().regex(/^\d{6}$/),
+  newPassword: PasswordSchema,
+});
+export type ResetPasswordInput = z.infer<typeof ResetPasswordInputSchema>;
+
 /**
  * Generic shape for error responses from any /api/auth/* route. `code` is a
  * stable machine-readable identifier (often the Cognito error name lower-cased)

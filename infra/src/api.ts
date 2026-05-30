@@ -81,3 +81,23 @@ api.route(
   },
   vehicleAuthOpts,
 );
+
+api.route(
+  'GET /v1/vehicles/{id}',
+  {
+    handler: 'packages/api/src/handlers/vehicles-get.handler',
+    description: 'Get a single vehicle the authenticated user owns',
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);
+
+api.route(
+  'PATCH /v1/vehicles/{id}',
+  {
+    handler: 'packages/api/src/handlers/vehicles-update.handler',
+    description: 'Update fields on a vehicle the authenticated user owns (also handles retire / un-retire via retiredAt)',
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);

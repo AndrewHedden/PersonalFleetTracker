@@ -2,7 +2,9 @@ import 'server-only';
 
 import {
   CognitoIdentityProviderClient,
+  ConfirmForgotPasswordCommand,
   ConfirmSignUpCommand,
+  ForgotPasswordCommand,
   InitiateAuthCommand,
   ResendConfirmationCodeCommand,
   SignUpCommand,
@@ -101,6 +103,42 @@ export async function resendConfirmationCode(email: string): Promise<void> {
     new ResendConfirmationCodeCommand({
       ClientId: clientId,
       Username: email,
+    }),
+  );
+}
+
+/**
+ * Triggers Cognito to email a 6-digit password-reset code to the user.
+ * Cognito always responds 200 (no info about whether the email exists) when
+ * `preventUserExistenceErrors` is `ENABLED` on the user pool client, so we
+ * can safely surface success without leaking account existence.
+ */
+export async function forgotPassword(email: string): Promise<void> {
+  const { clientId } = getCognitoConfig();
+  await getClient().send(
+    new ForgotPasswordCommand({
+      ClientId: clientId,
+      Username: email,
+    }),
+  );
+}
+
+/**
+ * Sets a new password using the reset code from `forgotPassword`. The new
+ * password must satisfy the user pool's password policy.
+ */
+export async function confirmForgotPassword(
+  email: string,
+  code: string,
+  newPassword: string,
+): Promise<void> {
+  const { clientId } = getCognitoConfig();
+  await getClient().send(
+    new ConfirmForgotPasswordCommand({
+      ClientId: clientId,
+      Username: email,
+      ConfirmationCode: code,
+      Password: newPassword,
     }),
   );
 }

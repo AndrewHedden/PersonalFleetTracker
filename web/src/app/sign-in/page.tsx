@@ -21,12 +21,22 @@ export default function SignInPage() {
         </CardContent>
       </Card>
 
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        New here?{' '}
-        <Link href="/sign-up" className="font-medium underline-offset-4 hover:underline">
-          Create an account
-        </Link>
-      </p>
+      <div className="flex flex-col gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+        <p>
+          New here?{' '}
+          <Link href="/sign-up" className="font-medium underline-offset-4 hover:underline">
+            Create an account
+          </Link>
+        </p>
+        <p>
+          <Link
+            href="/forgot-password"
+            className="font-medium underline-offset-4 hover:underline"
+          >
+            Forgot your password?
+          </Link>
+        </p>
+      </div>
     </main>
   );
 }
