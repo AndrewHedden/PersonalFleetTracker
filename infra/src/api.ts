@@ -127,3 +127,51 @@ api.route(
   },
   vehicleAuthOpts,
 );
+
+/**
+ * Maintenance task catalog — the seeded system tasks plus the caller's own
+ * custom tasks. Not vehicle-scoped, but still needs the DB link + VPC.
+ */
+api.route(
+  'GET /v1/maintenance-tasks',
+  {
+    handler: 'packages/api/src/handlers/maintenance-tasks-list.handler',
+    description: 'List the maintenance task catalog visible to the authenticated user',
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);
+
+api.route(
+  'POST /v1/maintenance-tasks',
+  {
+    handler: 'packages/api/src/handlers/maintenance-task-create.handler',
+    description: 'Create a custom maintenance task owned by the authenticated user',
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);
+
+/**
+ * Maintenance entries — nested under a vehicle, mirroring fuel. Ownership is
+ * re-checked in the handler before any insert/list happens.
+ */
+api.route(
+  'GET /v1/vehicles/{id}/maintenance',
+  {
+    handler: 'packages/api/src/handlers/maintenance-list.handler',
+    description: "List maintenance entries for one of the authenticated user's vehicles",
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);
+
+api.route(
+  'POST /v1/vehicles/{id}/maintenance',
+  {
+    handler: 'packages/api/src/handlers/maintenance-create.handler',
+    description: "Log a maintenance entry on one of the authenticated user's vehicles",
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);
