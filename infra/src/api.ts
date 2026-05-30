@@ -102,3 +102,28 @@ api.route(
   },
   vehicleAuthOpts,
 );
+
+/**
+ * Fuel entries — nested under a vehicle. Each entry belongs to a vehicle the
+ * authenticated user owns; ownership is re-checked in the handler before any
+ * insert/list happens.
+ */
+api.route(
+  'GET /v1/vehicles/{id}/fuel',
+  {
+    handler: 'packages/api/src/handlers/fuel-list.handler',
+    description: "List fuel entries for one of the authenticated user's vehicles",
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);
+
+api.route(
+  'POST /v1/vehicles/{id}/fuel',
+  {
+    handler: 'packages/api/src/handlers/fuel-create.handler',
+    description: "Log a fuel entry on one of the authenticated user's vehicles",
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);

@@ -1,3 +1,5 @@
+export * as fuelCreate from './handlers/fuel-create';
+export * as fuelList from './handlers/fuel-list';
 export * as health from './handlers/health';
 export * as me from './handlers/me';
 export * as migrate from './handlers/migrate';
