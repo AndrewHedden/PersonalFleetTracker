@@ -6,8 +6,9 @@ import { apiFetch, ApiError, UnauthenticatedError, bearerFromRequest } from '@/l
 /**
  * GET    /api/vehicles/:id — fetch a single vehicle owned by the user.
  * PATCH  /api/vehicles/:id — update fields (incl. retire/un-retire via retiredAt).
+ * DELETE /api/vehicles/:id — permanently delete a retired vehicle + all its data.
  *
- * Both forward the access token from the incoming Authorization header to
+ * All forward the access token from the incoming Authorization header to
  * the backend API. The client (which stores tokens in localStorage) sets
  * that header on every XHR — see web/src/lib/auth-client.ts apiFetch.
  */
@@ -50,6 +51,24 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       body: JSON.stringify(parsed.data),
     });
     return Response.json(updated);
+  } catch (err) {
+    return mapError(err);
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const token = bearerFromRequest(request);
+  try {
+    const body = await apiFetch<{ id: string; deleted: boolean }>(
+      token,
+      `/v1/vehicles/${encodeURIComponent(id)}`,
+      { method: 'DELETE' },
+    );
+    return Response.json(body);
   } catch (err) {
     return mapError(err);
   }

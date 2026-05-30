@@ -103,6 +103,17 @@ api.route(
   vehicleAuthOpts,
 );
 
+api.route(
+  'DELETE /v1/vehicles/{id}',
+  {
+    handler: 'packages/api/src/handlers/vehicles-delete.handler',
+    description:
+      'Permanently delete a retired vehicle the authenticated user owns, plus all its related data (cascade)',
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);
+
 /**
  * Fuel entries — nested under a vehicle. Each entry belongs to a vehicle the
  * authenticated user owns; ownership is re-checked in the handler before any
