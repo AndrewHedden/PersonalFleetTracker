@@ -181,7 +181,7 @@ export function FuelQuickAddForm({
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Field
           name="gallons"
           label="Gallons"
@@ -222,6 +222,7 @@ export function FuelQuickAddForm({
           onChange={(e) => onPricePerGallonChange(e.target.value)}
           hint={derived === 'pricePerGallon' ? 'auto' : undefined}
           error={state.fieldErrors?.pricePerGallon?.[0]}
+          wrapperClassName="col-span-2 sm:col-span-1"
         />
       </div>
 
@@ -248,15 +249,17 @@ function Field({
   label,
   error,
   hint,
+  wrapperClassName,
   ...rest
 }: {
   name: string;
   label: string;
   error?: string;
   hint?: string;
+  wrapperClassName?: string;
 } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className={`flex flex-col gap-1.5 ${wrapperClassName ?? ''}`}>
       <div className="flex items-baseline justify-between">
         <Label htmlFor={name}>{label}</Label>
         {hint && <span className="text-[10px] uppercase tracking-wide text-zinc-400">{hint}</span>}
