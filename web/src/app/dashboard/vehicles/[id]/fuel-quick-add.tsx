@@ -30,10 +30,10 @@ function num(s: string): number | null {
 }
 
 /**
- * Compact, inline "log a fill-up" form rendered at the top of the vehicle
- * detail page. Logging fuel is the app's most frequent task, so this lives
- * inline (no navigation): on success it calls `onCreated` and resets itself so
- * the next entry can be typed immediately.
+ * Inline "log a fill-up" form. In **create** mode (no `entry`) it lives at the
+ * top of the vehicle page and resets itself after each submit. In **edit** mode
+ * (`entry` provided) it pre-fills from the entry, PATCHes on save, and calls
+ * `onUpdated` / `onCancel` instead of resetting.
  *
  * The three money fields auto-complete each other: gallons + total cost derives
  * $/gallon; gallons + $/gallon derives total cost. Only the field the user
@@ -41,19 +41,26 @@ function num(s: string): number | null {
  */
 export function FuelQuickAddForm({
   vehicleId,
+  entry,
   onCreated,
+  onUpdated,
+  onCancel,
 }: {
   vehicleId: string;
-  onCreated: (entry: FuelEntry) => void;
+  entry?: FuelEntry;
+  onCreated?: (entry: FuelEntry) => void;
+  onUpdated?: (entry: FuelEntry) => void;
+  onCancel?: () => void;
 }) {
+  const isEdit = entry != null;
   const router = useRouter();
   const [state, setState] = useState<FormState>({});
   const [pending, startTransition] = useTransition();
 
   // Controlled so we can auto-derive the third value as the user types.
-  const [gallons, setGallons] = useState('');
-  const [totalCost, setTotalCost] = useState('');
-  const [pricePerGallon, setPricePerGallon] = useState('');
+  const [gallons, setGallons] = useState(entry?.gallons ?? '');
+  const [totalCost, setTotalCost] = useState(entry?.totalCost ?? '');
+  const [pricePerGallon, setPricePerGallon] = useState(entry?.pricePerGallon ?? '');
   const [derived, setDerived] = useState<Derived>(null);
 
   function onGallonsChange(v: string) {
@@ -130,15 +137,22 @@ export function FuelQuickAddForm({
     setState({});
     startTransition(async () => {
       try {
-        const created = await apiFetch<FuelEntry>(
-          `/api/vehicles/${encodeURIComponent(vehicleId)}/fuel`,
-          { method: 'POST', body: JSON.stringify(parsed.data) },
-        );
-        onCreated(created);
-        // Reset for the next entry: clear amounts + re-default date to today,
-        // re-check "tank filled".
-        form.reset();
-        resetAmounts();
+        if (isEdit) {
+          const updated = await apiFetch<FuelEntry>(
+            `/api/vehicles/${encodeURIComponent(vehicleId)}/fuel/${encodeURIComponent(entry.id)}`,
+            { method: 'PATCH', body: JSON.stringify(parsed.data) },
+          );
+          onUpdated?.(updated);
+        } else {
+          const created = await apiFetch<FuelEntry>(
+            `/api/vehicles/${encodeURIComponent(vehicleId)}/fuel`,
+            { method: 'POST', body: JSON.stringify(parsed.data) },
+          );
+          onCreated?.(created);
+          // Reset for the next entry.
+          form.reset();
+          resetAmounts();
+        }
       } catch (err) {
         if (
           err instanceof Error &&
@@ -166,7 +180,7 @@ export function FuelQuickAddForm({
           label="Date"
           type="date"
           required
-          defaultValue={today()}
+          defaultValue={entry?.entryDate ?? today()}
           error={state.fieldErrors?.entryDate?.[0]}
         />
         <Field
@@ -177,6 +191,7 @@ export function FuelQuickAddForm({
           min={0}
           required
           placeholder="e.g. 87500"
+          defaultValue={entry ? String(entry.odometer) : undefined}
           error={state.fieldErrors?.odometer?.[0]}
         />
       </div>
@@ -231,14 +246,21 @@ export function FuelQuickAddForm({
           <input
             type="checkbox"
             name="tankFilled"
-            defaultChecked
+            defaultChecked={entry ? entry.tankFilled : true}
             className="size-4 rounded border-zinc-300 dark:border-zinc-700"
           />
           <span>Tank filled (needed for MPG)</span>
         </label>
-        <Button type="submit" disabled={pending}>
-          {pending ? 'Saving…' : 'Log fill-up'}
-        </Button>
+        <div className="flex gap-2">
+          {isEdit && (
+            <Button type="button" variant="ghost" onClick={onCancel} disabled={pending}>
+              Cancel
+            </Button>
+          )}
+          <Button type="submit" disabled={pending}>
+            {pending ? 'Saving…' : isEdit ? 'Save' : 'Log fill-up'}
+          </Button>
+        </div>
       </div>
     </form>
   );

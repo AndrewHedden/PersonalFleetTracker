@@ -41,6 +41,11 @@ export const CreateFuelEntryInputSchema = z.object({
 
 export type CreateFuelEntryInput = z.infer<typeof CreateFuelEntryInputSchema>;
 
+/** All fields optional — only the provided ones are updated. */
+export const UpdateFuelEntryInputSchema = CreateFuelEntryInputSchema.partial();
+
+export type UpdateFuelEntryInput = z.infer<typeof UpdateFuelEntryInputSchema>;
+
 export const ListFuelEntriesResponseSchema = z.object({
   entries: z.array(FuelEntrySchema),
 });

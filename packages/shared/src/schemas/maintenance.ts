@@ -53,6 +53,15 @@ export const CreateMaintenanceEntryInputSchema = z.object({
 
 export type CreateMaintenanceEntryInput = z.infer<typeof CreateMaintenanceEntryInputSchema>;
 
+/**
+ * All fields optional — only the provided ones are updated. When `taskIds` is
+ * present it replaces the entry's full task set; when omitted, tasks are left
+ * unchanged.
+ */
+export const UpdateMaintenanceEntryInputSchema = CreateMaintenanceEntryInputSchema.partial();
+
+export type UpdateMaintenanceEntryInput = z.infer<typeof UpdateMaintenanceEntryInputSchema>;
+
 export const CreateMaintenanceTaskInputSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().max(1000).optional(),

@@ -16,7 +16,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { apiFetch, readSession } from '@/lib/auth-client';
 
+import { FuelEntryRow } from './fuel-entry-row';
 import { FuelQuickAddForm } from './fuel-quick-add';
+import { MaintenanceEntryRow } from './maintenance-entry-row';
 import { MaintenanceQuickAddForm } from './maintenance-quick-add';
 
 /** How many recent entries to show inline on the vehicle page. */
@@ -213,19 +215,12 @@ export default function VehicleDetailPage() {
           {fuel !== null && fuel.length > 0 && (
             <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
               {fuel.slice(0, RECENT_FUEL_LIMIT).map((e) => (
-                <li key={e.id} className="grid grid-cols-[auto_1fr_auto] items-baseline gap-3 py-2">
-                  <span className="font-mono text-xs text-zinc-500">{e.entryDate}</span>
-                  <span>
-                    {Number(e.gallons).toFixed(2)} gal · {Number(e.odometer).toLocaleString()} mi
-                    {!e.tankFilled && <span className="ml-2 text-xs text-zinc-500">(partial)</span>}
-                  </span>
-                  <span className="text-right tabular-nums">
-                    ${Number(e.totalCost).toFixed(2)}{' '}
-                    <span className="text-xs text-zinc-500">
-                      @ ${Number(e.pricePerGallon).toFixed(3)}/gal
-                    </span>
-                  </span>
-                </li>
+                <FuelEntryRow
+                  key={e.id}
+                  vehicleId={id}
+                  entry={e}
+                  onChanged={() => void loadFuel()}
+                />
               ))}
             </ul>
           )}
@@ -261,28 +256,12 @@ export default function VehicleDetailPage() {
           {maintenance !== null && maintenance.length > 0 && (
             <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
               {maintenance.slice(0, RECENT_MAINTENANCE_LIMIT).map((m) => (
-                <li key={m.id} className="flex flex-col gap-1 py-2">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <span className="font-mono text-xs text-zinc-500">{m.entryDate}</span>
-                    <span className="text-right tabular-nums">
-                      {Number(m.odometer).toLocaleString()} mi
-                      {m.totalCost !== null && (
-                        <span className="ml-2">${Number(m.totalCost).toFixed(2)}</span>
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {m.tasks.map((t) => (
-                      <span
-                        key={t.id}
-                        className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-                      >
-                        {t.name}
-                      </span>
-                    ))}
-                  </div>
-                  {m.shopName && <span className="text-xs text-zinc-500">{m.shopName}</span>}
-                </li>
+                <MaintenanceEntryRow
+                  key={m.id}
+                  vehicleId={id}
+                  entry={m}
+                  onChanged={() => void loadMaintenance()}
+                />
               ))}
             </ul>
           )}
