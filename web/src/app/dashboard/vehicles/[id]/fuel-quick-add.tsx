@@ -17,8 +17,11 @@ interface FormState {
 /** Which money field, if any, is currently auto-derived from the other two. */
 type Derived = 'totalCost' | 'pricePerGallon' | null;
 
+/** Local YYYY-MM-DD (not UTC — `toISOString` would roll over to tomorrow in
+ *  negative-offset timezones during the evening). */
 function today(): string {
-  return new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 }
 
 /** Parse a numeric input value; '' or non-numeric → null. */
