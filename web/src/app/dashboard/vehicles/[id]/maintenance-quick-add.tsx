@@ -19,8 +19,11 @@ interface FormState {
   fieldErrors?: Record<string, string[] | undefined>;
 }
 
+/** Local YYYY-MM-DD (not UTC — `toISOString` would roll over to tomorrow in
+ *  negative-offset timezones during the evening). */
 function today(): string {
-  return new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 }
 
 function onAuthError(err: unknown): boolean {
