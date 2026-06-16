@@ -15,9 +15,10 @@ companion, deployed to AWS, engineered to stay inside the AWS Free Tier.
 
 > Update this section before switching machines — it's the handoff note.
 
-- **Last landed (`489cbcf`, all merged + deployed to the `andrew` stage):** Phase 5 entry flows complete — fuel-first vehicle page (inline quick-add), maintenance entry flow (with custom-task creation), fuel-form auto-calc (derive the 3rd money field), delete-retired-vehicle (`DELETE /v1/vehicles/{id}`, double-confirm UI, cascade), and latest-odometer in the vehicle header.
-- **Next up:** the **maintenance reminders engine** — the last piece of Phase 5. The `maintenance_schedules` tables exist (mileage + time intervals); needs API handlers + a "due soon" computation + UI.
-- **Then:** Phase 4 iOS app shell (today `ios/` is just a README stub), then Phase 6 — receipt photos (S3 presigned uploads), polish, TestFlight.
+- **Last landed (`24a8c98`, all merged + deployed to the `andrew` stage):** Phase 5 entry flows + full entry CRUD + UX polish — fuel-first vehicle page, maintenance flow (custom tasks), fuel auto-calc, delete-retired-vehicle, latest-odometer header, edit/delete fuel & maintenance entries (click-a-row-to-open), local-date default fix, mobile date/odometer fix, and a **tabbed vehicle page** (Fill-ups default + Maintenance).
+- **Data:** the `andrew` account now holds real **imported AutoCare history** (6 vehicles, 319 fuel, 73 maintenance) plus 3 leftover test vehicles (Audi/Badillac/Test 4 — duplicates of the imported Audi/Cadillac, can be deleted). One-off importer lived in gitignored `scripts/autocare-import/` (token already deleted).
+- **Backlog (queued, not started):** (1) per-fill-up MPG display — frontend, math already reviewed; (2) see-all-entries path — frontend; (3) track vehicle purchase date — full-stack + migration; (4) quick-details/specs tab — full-stack + migration. Details in this machine's `~/.claude` memory.
+- **Next up (roadmap):** the **maintenance reminders engine** — last piece of Phase 5 (`maintenance_schedules` tables exist; needs API + "due soon" + UI). Then Phase 4 iOS shell (`ios/` is a stub), then Phase 6 (receipt photos, polish, TestFlight).
 - **Deploys from this machine:** AWS creds are under the `pft` profile; the gitignored `.env` (mise-loaded) sets `AWS_PROFILE=pft` + `AWS_REGION=us-east-1`. Deploy: `pnpm --filter @stablebook/infra sst:deploy --stage andrew`.
 
 ## Stack
