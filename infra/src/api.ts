@@ -139,6 +139,26 @@ api.route(
   vehicleAuthOpts,
 );
 
+api.route(
+  'PATCH /v1/vehicles/{id}/fuel/{entryId}',
+  {
+    handler: 'packages/api/src/handlers/fuel-update.handler',
+    description: "Update a fuel entry on one of the authenticated user's vehicles",
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);
+
+api.route(
+  'DELETE /v1/vehicles/{id}/fuel/{entryId}',
+  {
+    handler: 'packages/api/src/handlers/fuel-delete.handler',
+    description: "Delete a fuel entry on one of the authenticated user's vehicles",
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);
+
 /**
  * Maintenance task catalog — the seeded system tasks plus the caller's own
  * custom tasks. Not vehicle-scoped, but still needs the DB link + VPC.
@@ -182,6 +202,26 @@ api.route(
   {
     handler: 'packages/api/src/handlers/maintenance-create.handler',
     description: "Log a maintenance entry on one of the authenticated user's vehicles",
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);
+
+api.route(
+  'PATCH /v1/vehicles/{id}/maintenance/{entryId}',
+  {
+    handler: 'packages/api/src/handlers/maintenance-update.handler',
+    description: "Update a maintenance entry on one of the authenticated user's vehicles",
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);
+
+api.route(
+  'DELETE /v1/vehicles/{id}/maintenance/{entryId}',
+  {
+    handler: 'packages/api/src/handlers/maintenance-delete.handler',
+    description: "Delete a maintenance entry on one of the authenticated user's vehicles",
     ...vehicleRouteOpts,
   },
   vehicleAuthOpts,

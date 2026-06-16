@@ -1,10 +1,14 @@
 export * as fuelCreate from './handlers/fuel-create';
+export * as fuelDelete from './handlers/fuel-delete';
 export * as fuelList from './handlers/fuel-list';
+export * as fuelUpdate from './handlers/fuel-update';
 export * as health from './handlers/health';
 export * as maintenanceCreate from './handlers/maintenance-create';
+export * as maintenanceDelete from './handlers/maintenance-delete';
 export * as maintenanceList from './handlers/maintenance-list';
 export * as maintenanceTaskCreate from './handlers/maintenance-task-create';
 export * as maintenanceTasksList from './handlers/maintenance-tasks-list';
+export * as maintenanceUpdate from './handlers/maintenance-update';
 export * as me from './handlers/me';
 export * as migrate from './handlers/migrate';
 export * as vehiclesCreate from './handlers/vehicles-create';

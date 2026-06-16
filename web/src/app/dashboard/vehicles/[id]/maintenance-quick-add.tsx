@@ -30,21 +30,31 @@ function onAuthError(err: unknown): boolean {
 }
 
 /**
- * Inline "log maintenance" form for the vehicle page. Lets the user pick one or
- * more tasks from the catalog (system + their own custom tasks), add a new
- * custom task on the fly, and record date/odometer plus optional cost/shop/
- * notes. On success it calls `onCreated` and resets for the next entry.
+ * Inline "log maintenance" form. In **create** mode (no `entry`) it resets after
+ * each submit. In **edit** mode (`entry` provided) it pre-fills from the entry
+ * (including the selected task set), PATCHes on save, and calls `onUpdated` /
+ * `onCancel` instead of resetting. Users can pick catalog tasks or add a custom
+ * one on the fly.
  */
 export function MaintenanceQuickAddForm({
   vehicleId,
+  entry,
   onCreated,
+  onUpdated,
+  onCancel,
 }: {
   vehicleId: string;
-  onCreated: (entry: MaintenanceEntry) => void;
+  entry?: MaintenanceEntry;
+  onCreated?: (entry: MaintenanceEntry) => void;
+  onUpdated?: (entry: MaintenanceEntry) => void;
+  onCancel?: () => void;
 }) {
+  const isEdit = entry != null;
   const router = useRouter();
   const [tasks, setTasks] = useState<MaintenanceTask[] | null>(null);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(entry?.tasks.map((t) => t.id) ?? []),
+  );
   const [state, setState] = useState<FormState>({});
   const [pending, startTransition] = useTransition();
 
@@ -142,13 +152,21 @@ export function MaintenanceQuickAddForm({
     setState({});
     startTransition(async () => {
       try {
-        const created = await apiFetch<MaintenanceEntry>(
-          `/api/vehicles/${encodeURIComponent(vehicleId)}/maintenance`,
-          { method: 'POST', body: JSON.stringify(parsed.data) },
-        );
-        onCreated(created);
-        form.reset();
-        setSelected(new Set());
+        if (isEdit) {
+          const updated = await apiFetch<MaintenanceEntry>(
+            `/api/vehicles/${encodeURIComponent(vehicleId)}/maintenance/${encodeURIComponent(entry.id)}`,
+            { method: 'PATCH', body: JSON.stringify(parsed.data) },
+          );
+          onUpdated?.(updated);
+        } else {
+          const created = await apiFetch<MaintenanceEntry>(
+            `/api/vehicles/${encodeURIComponent(vehicleId)}/maintenance`,
+            { method: 'POST', body: JSON.stringify(parsed.data) },
+          );
+          onCreated?.(created);
+          form.reset();
+          setSelected(new Set());
+        }
       } catch (err) {
         if (onAuthError(err)) {
           router.replace('/sign-in');
@@ -173,7 +191,7 @@ export function MaintenanceQuickAddForm({
           label="Date"
           type="date"
           required
-          defaultValue={today()}
+          defaultValue={entry?.entryDate ?? today()}
           error={state.fieldErrors?.entryDate?.[0]}
         />
         <Field
@@ -184,6 +202,7 @@ export function MaintenanceQuickAddForm({
           min={0}
           required
           placeholder="e.g. 87500"
+          defaultValue={entry ? String(entry.odometer) : undefined}
           error={state.fieldErrors?.odometer?.[0]}
         />
       </div>
@@ -258,12 +277,14 @@ export function MaintenanceQuickAddForm({
           step="0.01"
           min={0}
           placeholder="Optional"
+          defaultValue={entry?.totalCost ?? undefined}
           error={state.fieldErrors?.totalCost?.[0]}
         />
         <Field
           name="shopName"
           label="Shop"
           placeholder="Optional"
+          defaultValue={entry?.shopName ?? undefined}
           error={state.fieldErrors?.shopName?.[0]}
         />
       </div>
@@ -272,12 +293,18 @@ export function MaintenanceQuickAddForm({
         name="notes"
         label="Notes"
         placeholder="Optional"
+        defaultValue={entry?.notes ?? undefined}
         error={state.fieldErrors?.notes?.[0]}
       />
 
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        {isEdit && (
+          <Button type="button" variant="ghost" onClick={onCancel} disabled={pending}>
+            Cancel
+          </Button>
+        )}
         <Button type="submit" disabled={pending}>
-          {pending ? 'Saving…' : 'Log maintenance'}
+          {pending ? 'Saving…' : isEdit ? 'Save' : 'Log maintenance'}
         </Button>
       </div>
     </form>
