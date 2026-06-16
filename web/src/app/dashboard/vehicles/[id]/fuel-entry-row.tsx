@@ -9,9 +9,10 @@ import { apiFetch } from '@/lib/auth-client';
 import { FuelQuickAddForm } from './fuel-quick-add';
 
 /**
- * One row in the "Recent fill-ups" list. Shows the entry with Edit / Delete
- * actions; Edit swaps the row for the fuel form in edit mode, Delete asks for a
- * lightweight inline confirmation. `onChanged` re-fetches the list after either.
+ * One row in the "Recent fill-ups" list. The collapsed row is clickable —
+ * clicking it opens the entry into the fuel form (edit mode) plus a delete
+ * action (with a lightweight inline confirm). `onChanged` re-fetches the list
+ * after an edit or delete.
  */
 export function FuelEntryRow({
   vehicleId,
@@ -23,10 +24,16 @@ export function FuelEntryRow({
   onChanged: () => void;
 }) {
   const router = useRouter();
-  const [editing, setEditing] = useState(false);
+  const [open, setOpen] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  function close() {
+    setOpen(false);
+    setConfirmingDelete(false);
+    setError(null);
+  }
 
   function deleteEntry() {
     setError(null);
@@ -50,27 +57,63 @@ export function FuelEntryRow({
     });
   }
 
-  if (editing) {
+  if (open) {
     return (
       <li className="py-3">
-        <div className="rounded-md border border-zinc-200 p-3 dark:border-zinc-800">
+        <div className="space-y-3 rounded-md border border-zinc-200 p-3 dark:border-zinc-800">
           <FuelQuickAddForm
             vehicleId={vehicleId}
             entry={entry}
             onUpdated={() => {
-              setEditing(false);
+              close();
               onChanged();
             }}
-            onCancel={() => setEditing(false)}
+            onCancel={close}
           />
+          <div className="flex items-center justify-end gap-3 border-t border-zinc-200 pt-3 text-xs dark:border-zinc-800">
+            {error && <span className="mr-auto text-destructive">{error}</span>}
+            {confirmingDelete ? (
+              <>
+                <span className="text-zinc-500">Delete this entry?</span>
+                <button
+                  type="button"
+                  onClick={deleteEntry}
+                  disabled={pending}
+                  className="font-medium text-destructive hover:underline disabled:opacity-50"
+                >
+                  {pending ? 'Deleting…' : 'Delete'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmingDelete(false)}
+                  disabled={pending}
+                  className="text-zinc-500 hover:underline"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(true)}
+                className="font-medium text-destructive hover:underline"
+              >
+                Delete entry
+              </button>
+            )}
+          </div>
         </div>
       </li>
     );
   }
 
   return (
-    <li className="flex flex-col gap-1 py-2">
-      <div className="grid grid-cols-[auto_1fr_auto] items-baseline gap-3">
+    <li>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="-mx-2 grid w-full grid-cols-[auto_1fr_auto] items-baseline gap-3 rounded px-2 py-2 text-left hover:bg-zinc-100 dark:hover:bg-zinc-900"
+      >
         <span className="font-mono text-xs text-zinc-500">{entry.entryDate}</span>
         <span>
           {Number(entry.gallons).toFixed(2)} gal · {Number(entry.odometer).toLocaleString()} mi
@@ -82,48 +125,7 @@ export function FuelEntryRow({
             @ ${Number(entry.pricePerGallon).toFixed(3)}/gal
           </span>
         </span>
-      </div>
-      <div className="flex items-center justify-end gap-3 text-xs">
-        {error && <span className="mr-auto text-destructive">{error}</span>}
-        {confirmingDelete ? (
-          <>
-            <span className="text-zinc-500">Delete this entry?</span>
-            <button
-              type="button"
-              onClick={deleteEntry}
-              disabled={pending}
-              className="font-medium text-destructive hover:underline disabled:opacity-50"
-            >
-              {pending ? 'Deleting…' : 'Delete'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmingDelete(false)}
-              disabled={pending}
-              className="text-zinc-500 hover:underline"
-            >
-              Cancel
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={() => setEditing(true)}
-              className="font-medium text-primary hover:underline"
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmingDelete(true)}
-              className="font-medium text-destructive hover:underline"
-            >
-              Delete
-            </button>
-          </>
-        )}
-      </div>
+      </button>
     </li>
   );
 }
