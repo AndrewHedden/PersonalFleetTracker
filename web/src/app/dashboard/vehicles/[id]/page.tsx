@@ -33,6 +33,8 @@ export default function VehicleDetailPage() {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [fuel, setFuel] = useState<FuelEntry[] | null>(null);
   const [maintenance, setMaintenance] = useState<MaintenanceEntry[] | null>(null);
+  // Which section is shown — defaults to fill-ups (the most frequent task).
+  const [tab, setTab] = useState<'fuel' | 'maintenance'>('fuel');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   // Delete flow (retired vehicles only): two-step confirm — reveal, then
@@ -191,87 +193,108 @@ export default function VehicleDetailPage() {
         </p>
       )}
 
-      {/* Primary task: log a fill-up inline, no navigation. */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Log a fill-up</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <FuelQuickAddForm vehicleId={id} onCreated={() => void loadFuel()} />
-        </CardContent>
-      </Card>
+      {/* Fill-ups / Maintenance tabs — defaults to fill-ups. */}
+      <div
+        role="tablist"
+        aria-label="Vehicle records"
+        className="flex gap-1 border-b border-zinc-200 dark:border-zinc-800"
+      >
+        <TabButton active={tab === 'fuel'} onClick={() => setTab('fuel')}>
+          Fill-ups
+        </TabButton>
+        <TabButton active={tab === 'maintenance'} onClick={() => setTab('maintenance')}>
+          Maintenance
+        </TabButton>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent fill-ups</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          {fuel === null && <p className="text-zinc-500">Loading…</p>}
-          {fuel !== null && fuel.length === 0 && (
-            <p className="text-zinc-600 dark:text-zinc-400">
-              No fuel entries yet. Use the form above to log your first fill-up.
-            </p>
-          )}
-          {fuel !== null && fuel.length > 0 && (
-            <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
-              {fuel.slice(0, RECENT_FUEL_LIMIT).map((e) => (
-                <FuelEntryRow
-                  key={e.id}
-                  vehicleId={id}
-                  entry={e}
-                  onChanged={() => void loadFuel()}
-                />
-              ))}
-            </ul>
-          )}
-          {fuel !== null && fuel.length > RECENT_FUEL_LIMIT && (
-            <p className="pt-1 text-xs text-zinc-500">
-              Showing the {RECENT_FUEL_LIMIT} most recent of {fuel.length} entries.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      {tab === 'fuel' && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Log a fill-up</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FuelQuickAddForm vehicleId={id} onCreated={() => void loadFuel()} />
+            </CardContent>
+          </Card>
 
-      {/* Secondary task: log maintenance. */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Log maintenance</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <MaintenanceQuickAddForm vehicleId={id} onCreated={() => void loadMaintenance()} />
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent fill-ups</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              {fuel === null && <p className="text-zinc-500">Loading…</p>}
+              {fuel !== null && fuel.length === 0 && (
+                <p className="text-zinc-600 dark:text-zinc-400">
+                  No fuel entries yet. Use the form above to log your first fill-up.
+                </p>
+              )}
+              {fuel !== null && fuel.length > 0 && (
+                <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                  {fuel.slice(0, RECENT_FUEL_LIMIT).map((e) => (
+                    <FuelEntryRow
+                      key={e.id}
+                      vehicleId={id}
+                      entry={e}
+                      onChanged={() => void loadFuel()}
+                    />
+                  ))}
+                </ul>
+              )}
+              {fuel !== null && fuel.length > RECENT_FUEL_LIMIT && (
+                <p className="pt-1 text-xs text-zinc-500">
+                  Showing the {RECENT_FUEL_LIMIT} most recent of {fuel.length} entries.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent maintenance</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          {maintenance === null && <p className="text-zinc-500">Loading…</p>}
-          {maintenance !== null && maintenance.length === 0 && (
-            <p className="text-zinc-600 dark:text-zinc-400">
-              No maintenance logged yet. Use the form above to record a service.
-            </p>
-          )}
-          {maintenance !== null && maintenance.length > 0 && (
-            <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
-              {maintenance.slice(0, RECENT_MAINTENANCE_LIMIT).map((m) => (
-                <MaintenanceEntryRow
-                  key={m.id}
-                  vehicleId={id}
-                  entry={m}
-                  onChanged={() => void loadMaintenance()}
-                />
-              ))}
-            </ul>
-          )}
-          {maintenance !== null && maintenance.length > RECENT_MAINTENANCE_LIMIT && (
-            <p className="pt-1 text-xs text-zinc-500">
-              Showing the {RECENT_MAINTENANCE_LIMIT} most recent of {maintenance.length} entries.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      {tab === 'maintenance' && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Log maintenance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MaintenanceQuickAddForm vehicleId={id} onCreated={() => void loadMaintenance()} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent maintenance</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              {maintenance === null && <p className="text-zinc-500">Loading…</p>}
+              {maintenance !== null && maintenance.length === 0 && (
+                <p className="text-zinc-600 dark:text-zinc-400">
+                  No maintenance logged yet. Use the form above to record a service.
+                </p>
+              )}
+              {maintenance !== null && maintenance.length > 0 && (
+                <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                  {maintenance.slice(0, RECENT_MAINTENANCE_LIMIT).map((m) => (
+                    <MaintenanceEntryRow
+                      key={m.id}
+                      vehicleId={id}
+                      entry={m}
+                      onChanged={() => void loadMaintenance()}
+                    />
+                  ))}
+                </ul>
+              )}
+              {maintenance !== null && maintenance.length > RECENT_MAINTENANCE_LIMIT && (
+                <p className="pt-1 text-xs text-zinc-500">
+                  Showing the {RECENT_MAINTENANCE_LIMIT} most recent of {maintenance.length}{' '}
+                  entries.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       {/* Secondary actions. */}
       <div className="flex flex-wrap items-center gap-2">
@@ -336,5 +359,31 @@ export default function VehicleDetailPage() {
         </Card>
       )}
     </main>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+        active
+          ? 'border-primary text-foreground'
+          : 'border-transparent text-zinc-500 hover:text-foreground'
+      }`}
+    >
+      {children}
+    </button>
   );
 }
