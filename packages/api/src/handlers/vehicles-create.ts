@@ -58,6 +58,7 @@ export const handler = async (
       color: parsed.data.color ?? null,
       purchaseOdometer: parsed.data.purchaseOdometer ?? null,
       purchaseDate: parsed.data.purchaseDate ?? null,
+      specs: parsed.data.specs ?? null,
     })
     .returning();
 
@@ -78,6 +79,7 @@ export const handler = async (
     color: row.color,
     purchaseOdometer: row.purchaseOdometer,
     purchaseDate: row.purchaseDate,
+    specs: (row.specs as Vehicle['specs']) ?? null,
     retiredAt: row.retiredAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

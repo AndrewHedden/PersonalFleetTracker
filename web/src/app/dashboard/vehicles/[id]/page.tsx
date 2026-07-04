@@ -21,6 +21,7 @@ import { FuelQuickAddForm } from './fuel-quick-add';
 import { MaintenanceEntryRow } from './maintenance-entry-row';
 import { MaintenanceQuickAddForm } from './maintenance-quick-add';
 import { computeMpg } from './mpg';
+import { VehicleSpecs } from './vehicle-specs';
 
 /** How many recent entries to show inline on the vehicle page. */
 const RECENT_FUEL_LIMIT = 10;
@@ -35,7 +36,7 @@ export default function VehicleDetailPage() {
   const [fuel, setFuel] = useState<FuelEntry[] | null>(null);
   const [maintenance, setMaintenance] = useState<MaintenanceEntry[] | null>(null);
   // Which section is shown — defaults to fill-ups (the most frequent task).
-  const [tab, setTab] = useState<'fuel' | 'maintenance'>('fuel');
+  const [tab, setTab] = useState<'fuel' | 'maintenance' | 'details'>('fuel');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   // Delete flow (retired vehicles only): two-step confirm — reveal, then
@@ -209,6 +210,9 @@ export default function VehicleDetailPage() {
         <TabButton active={tab === 'maintenance'} onClick={() => setTab('maintenance')}>
           Maintenance
         </TabButton>
+        <TabButton active={tab === 'details'} onClick={() => setTab('details')}>
+          Details
+        </TabButton>
       </div>
 
       {tab === 'fuel' && (
@@ -306,10 +310,21 @@ export default function VehicleDetailPage() {
         </>
       )}
 
+      {tab === 'details' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <VehicleSpecs vehicle={vehicle} onSaved={setVehicle} />
+          </CardContent>
+        </Card>
+      )}
+
       {/* Secondary actions. */}
       <div className="flex flex-wrap items-center gap-2">
         <Link href={editHref} className={buttonVariants({ variant: 'outline' })}>
-          Edit details
+          Edit vehicle
         </Link>
         <Button variant="ghost" onClick={toggleRetired} disabled={busy}>
           {busy ? 'Saving…' : retired ? 'Bring back' : 'Retire'}
