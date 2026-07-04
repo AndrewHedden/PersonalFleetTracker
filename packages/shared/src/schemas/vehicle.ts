@@ -11,6 +11,39 @@ import { z } from 'zod';
 const isoDateTime = z.string().datetime();
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
+/** Per-axle tire reference. All fields optional; front & rear may differ. */
+const TireSpecSchema = z
+  .object({
+    size: z.string().max(50),
+    pressure: z.string().max(50),
+    brand: z.string().max(100),
+    model: z.string().max(100),
+  })
+  .partial();
+
+/**
+ * Free-reference "quick details" for a vehicle — service specs the owner keeps
+ * handy. Stored as a JSONB blob so the field set can grow without migrations.
+ * All fields optional; values are free text (units live in the value, e.g.
+ * "6.5 qt", "80 ft-lb", "35 psi").
+ */
+export const VehicleSpecsSchema = z
+  .object({
+    engineOilType: z.string().max(100),
+    engineOilBrand: z.string().max(100),
+    engineOilCapacity: z.string().max(50),
+    oilFilterPartNumber: z.string().max(100),
+    oilDrainPlugSocket: z.string().max(50),
+    oilDrainPlugTorque: z.string().max(50),
+    lugNutTorque: z.string().max(50),
+    tireFront: TireSpecSchema,
+    tireRear: TireSpecSchema,
+    notes: z.string().max(2000),
+  })
+  .partial();
+
+export type VehicleSpecs = z.infer<typeof VehicleSpecsSchema>;
+
 export const VehicleSchema = z.object({
   id: z.string().uuid(),
   userId: z.string().uuid(),
@@ -24,6 +57,7 @@ export const VehicleSchema = z.object({
   color: z.string().nullable(),
   purchaseOdometer: z.number().int().nullable(),
   purchaseDate: isoDate.nullable(),
+  specs: VehicleSpecsSchema.nullable(),
   retiredAt: isoDateTime.nullable(),
   createdAt: isoDateTime,
   updatedAt: isoDateTime,
@@ -42,6 +76,7 @@ export const CreateVehicleInputSchema = z.object({
   color: z.string().max(50).optional(),
   purchaseOdometer: z.number().int().min(0).optional(),
   purchaseDate: isoDate.optional(),
+  specs: VehicleSpecsSchema.optional(),
 });
 
 export type CreateVehicleInput = z.infer<typeof CreateVehicleInputSchema>;

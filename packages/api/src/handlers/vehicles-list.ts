@@ -1,5 +1,5 @@
 import { vehicles } from '@stablebook/db';
-import type { ListVehiclesResponse } from '@stablebook/shared';
+import type { ListVehiclesResponse, Vehicle } from '@stablebook/shared';
 import type { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { eq } from 'drizzle-orm';
 
@@ -45,6 +45,7 @@ export const handler = async (
       color: row.color,
       purchaseOdometer: row.purchaseOdometer,
       purchaseDate: row.purchaseDate,
+      specs: (row.specs as Vehicle['specs']) ?? null,
       retiredAt: row.retiredAt?.toISOString() ?? null,
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),

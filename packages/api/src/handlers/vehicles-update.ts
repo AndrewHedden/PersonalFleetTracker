@@ -70,6 +70,7 @@ export const handler = async (
   if (i.color !== undefined) updates.color = i.color ?? null;
   if (i.purchaseOdometer !== undefined) updates.purchaseOdometer = i.purchaseOdometer ?? null;
   if (i.purchaseDate !== undefined) updates.purchaseDate = i.purchaseDate ?? null;
+  if (i.specs !== undefined) updates.specs = i.specs ?? null;
   if (i.retiredAt !== undefined) {
     updates.retiredAt = i.retiredAt === null ? null : new Date(i.retiredAt);
   }
@@ -98,6 +99,7 @@ export const handler = async (
     color: row.color,
     purchaseOdometer: row.purchaseOdometer,
     purchaseDate: row.purchaseDate,
+    specs: (row.specs as Vehicle['specs']) ?? null,
     retiredAt: row.retiredAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
