@@ -9,7 +9,7 @@ import type {
 } from '@stablebook/shared';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +20,7 @@ import { FuelEntryRow } from './fuel-entry-row';
 import { FuelQuickAddForm } from './fuel-quick-add';
 import { MaintenanceEntryRow } from './maintenance-entry-row';
 import { MaintenanceQuickAddForm } from './maintenance-quick-add';
+import { computeMpg } from './mpg';
 
 /** How many recent entries to show inline on the vehicle page. */
 const RECENT_FUEL_LIMIT = 10;
@@ -42,6 +43,9 @@ export default function VehicleDetailPage() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
+
+  // MPG per fill-up, computed over the *full* fuel list (not just the recent slice).
+  const mpgByEntry = useMemo(() => computeMpg(fuel ?? []), [fuel]);
 
   const loadFuel = useCallback(() => {
     return apiFetch<ListFuelEntriesResponse>(`/api/vehicles/${encodeURIComponent(id)}/fuel`)
@@ -236,6 +240,7 @@ export default function VehicleDetailPage() {
                       key={e.id}
                       vehicleId={id}
                       entry={e}
+                      mpg={mpgByEntry.get(e.id)}
                       onChanged={() => void loadFuel()}
                     />
                   ))}
