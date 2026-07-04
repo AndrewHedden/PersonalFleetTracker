@@ -17,10 +17,13 @@ import { FuelQuickAddForm } from './fuel-quick-add';
 export function FuelEntryRow({
   vehicleId,
   entry,
+  mpg,
   onChanged,
 }: {
   vehicleId: string;
   entry: FuelEntry;
+  /** Computed MPG for this fill-up (tank-filled only); omitted when not derivable. */
+  mpg?: number;
   onChanged: () => void;
 }) {
   const router = useRouter();
@@ -118,6 +121,9 @@ export function FuelEntryRow({
         <span>
           {Number(entry.gallons).toFixed(2)} gal · {Number(entry.odometer).toLocaleString()} mi
           {!entry.tankFilled && <span className="ml-2 text-xs text-zinc-500">(partial)</span>}
+          {mpg !== undefined && (
+            <span className="ml-2 text-xs font-medium text-zinc-500">{mpg.toFixed(1)} mpg</span>
+          )}
         </span>
         <span className="text-right tabular-nums">
           ${Number(entry.totalCost).toFixed(2)}{' '}
