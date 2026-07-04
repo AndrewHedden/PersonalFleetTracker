@@ -21,6 +21,7 @@ import { FuelQuickAddForm } from './fuel-quick-add';
 import { MaintenanceEntryRow } from './maintenance-entry-row';
 import { MaintenanceQuickAddForm } from './maintenance-quick-add';
 import { computeMpg } from './mpg';
+import { VehicleSchedules } from './vehicle-schedules';
 import { VehicleSpecs } from './vehicle-specs';
 
 /** How many recent entries to show inline on the vehicle page. */
@@ -265,6 +266,15 @@ export default function VehicleDetailPage() {
 
       {tab === 'maintenance' && (
         <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Schedules &amp; reminders</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <VehicleSchedules vehicleId={id} />
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Log maintenance</CardTitle>
