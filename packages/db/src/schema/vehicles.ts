@@ -1,5 +1,5 @@
 import { relations, sql } from 'drizzle-orm';
-import { check, index, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { check, date, index, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 import { fuelEntries } from './fuel-entries';
 import { maintenanceEntries } from './maintenance-entries';
@@ -24,6 +24,7 @@ export const vehicles = pgTable(
     licensePlate: text('license_plate'),
     color: text('color'),
     purchaseOdometer: integer('purchase_odometer'),
+    purchaseDate: date('purchase_date', { mode: 'string' }),
     retiredAt: timestamp('retired_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

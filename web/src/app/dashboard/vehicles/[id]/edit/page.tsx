@@ -66,6 +66,7 @@ export default function EditVehiclePage() {
       licensePlate: trim(fd.get('licensePlate')),
       color: trim(fd.get('color')),
       purchaseOdometer: num(fd.get('purchaseOdometer')),
+      purchaseDate: trim(fd.get('purchaseDate')),
     };
 
     const parsed = UpdateVehicleInputSchema.safeParse(raw);
@@ -208,15 +209,24 @@ export default function EditVehiclePage() {
               />
             </div>
 
-            <Field
-              name="purchaseOdometer"
-              label="Odometer at purchase"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              defaultValue={vehicle.purchaseOdometer ?? undefined}
-              error={state.fieldErrors?.purchaseOdometer?.[0]}
-            />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field
+                name="purchaseOdometer"
+                label="Odometer at purchase"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                defaultValue={vehicle.purchaseOdometer ?? undefined}
+                error={state.fieldErrors?.purchaseOdometer?.[0]}
+              />
+              <Field
+                name="purchaseDate"
+                label="Purchase date"
+                type="date"
+                defaultValue={vehicle.purchaseDate ?? undefined}
+                error={state.fieldErrors?.purchaseDate?.[0]}
+              />
+            </div>
 
             <Button type="submit" disabled={pending}>
               {pending ? 'Saving…' : 'Save changes'}

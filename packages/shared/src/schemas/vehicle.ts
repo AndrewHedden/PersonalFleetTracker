@@ -9,6 +9,7 @@ import { z } from 'zod';
  */
 
 const isoDateTime = z.string().datetime();
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
 export const VehicleSchema = z.object({
   id: z.string().uuid(),
@@ -22,6 +23,7 @@ export const VehicleSchema = z.object({
   licensePlate: z.string().nullable(),
   color: z.string().nullable(),
   purchaseOdometer: z.number().int().nullable(),
+  purchaseDate: isoDate.nullable(),
   retiredAt: isoDateTime.nullable(),
   createdAt: isoDateTime,
   updatedAt: isoDateTime,
@@ -39,6 +41,7 @@ export const CreateVehicleInputSchema = z.object({
   licensePlate: z.string().max(20).optional(),
   color: z.string().max(50).optional(),
   purchaseOdometer: z.number().int().min(0).optional(),
+  purchaseDate: isoDate.optional(),
 });
 
 export type CreateVehicleInput = z.infer<typeof CreateVehicleInputSchema>;
