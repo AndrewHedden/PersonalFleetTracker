@@ -247,9 +247,12 @@ export default function VehicleDetailPage() {
                 </ul>
               )}
               {fuel !== null && fuel.length > RECENT_FUEL_LIMIT && (
-                <p className="pt-1 text-xs text-zinc-500">
-                  Showing the {RECENT_FUEL_LIMIT} most recent of {fuel.length} entries.
-                </p>
+                <Link
+                  href={`/dashboard/vehicles/${encodeURIComponent(id)}/fuel`}
+                  className="inline-block pt-1 text-xs font-medium text-primary hover:underline"
+                >
+                  View all {fuel.length} fill-ups →
+                </Link>
               )}
             </CardContent>
           </Card>
@@ -291,10 +294,12 @@ export default function VehicleDetailPage() {
                 </ul>
               )}
               {maintenance !== null && maintenance.length > RECENT_MAINTENANCE_LIMIT && (
-                <p className="pt-1 text-xs text-zinc-500">
-                  Showing the {RECENT_MAINTENANCE_LIMIT} most recent of {maintenance.length}{' '}
-                  entries.
-                </p>
+                <Link
+                  href={`/dashboard/vehicles/${encodeURIComponent(id)}/maintenance`}
+                  className="inline-block pt-1 text-xs font-medium text-primary hover:underline"
+                >
+                  View all {maintenance.length} maintenance entries →
+                </Link>
               )}
             </CardContent>
           </Card>
