@@ -44,6 +44,7 @@ export const handler = async (
       licensePlate: row.licensePlate,
       color: row.color,
       purchaseOdometer: row.purchaseOdometer,
+      purchaseDate: row.purchaseDate,
       retiredAt: row.retiredAt?.toISOString() ?? null,
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),
