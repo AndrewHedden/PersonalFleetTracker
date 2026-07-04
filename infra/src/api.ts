@@ -226,3 +226,58 @@ api.route(
   },
   vehicleAuthOpts,
 );
+
+/**
+ * Maintenance schedules (reminders) — routines per vehicle. The GET returns each
+ * schedule enriched with computed due status; `GET /v1/reminders` rolls up
+ * due/overdue counts across all the caller's vehicles for the dashboard.
+ */
+api.route(
+  'GET /v1/vehicles/{id}/schedules',
+  {
+    handler: 'packages/api/src/handlers/schedules-list.handler',
+    description: "List maintenance schedules (with due status) for the user's vehicle",
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);
+
+api.route(
+  'POST /v1/vehicles/{id}/schedules',
+  {
+    handler: 'packages/api/src/handlers/schedule-create.handler',
+    description: "Add a maintenance schedule to one of the authenticated user's vehicles",
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);
+
+api.route(
+  'PATCH /v1/vehicles/{id}/schedules/{scheduleId}',
+  {
+    handler: 'packages/api/src/handlers/schedule-update.handler',
+    description: 'Update a maintenance schedule interval',
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);
+
+api.route(
+  'DELETE /v1/vehicles/{id}/schedules/{scheduleId}',
+  {
+    handler: 'packages/api/src/handlers/schedule-delete.handler',
+    description: 'Delete a maintenance schedule',
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);
+
+api.route(
+  'GET /v1/reminders',
+  {
+    handler: 'packages/api/src/handlers/reminders-summary.handler',
+    description: "Per-vehicle due/overdue counts across the authenticated user's vehicles",
+    ...vehicleRouteOpts,
+  },
+  vehicleAuthOpts,
+);

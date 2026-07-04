@@ -1,9 +1,9 @@
 'use client';
 
-import type { ListVehiclesResponse } from '@stablebook/shared';
+import type { ListVehiclesResponse, RemindersSummaryResponse } from '@stablebook/shared';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [session, setSession] = useState<StoredSession | null>(null);
   const [vehicles, setVehicles] = useState<ListVehiclesResponse['vehicles'] | null>(null);
+  const [reminders, setReminders] = useState<RemindersSummaryResponse['vehicles']>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,7 +32,16 @@ export default function DashboardPage() {
         }
         setError(err instanceof Error ? err.message : String(err));
       });
+    // Reminder counts are best-effort — never block the vehicle list on them.
+    apiFetch<RemindersSummaryResponse>('/api/reminders')
+      .then((res) => setReminders(res.vehicles))
+      .catch(() => {});
   }, [router]);
+
+  const remindersByVehicle = useMemo(
+    () => new Map(reminders.map((r) => [r.vehicleId, r])),
+    [reminders],
+  );
 
   function onSignOut() {
     clearTokens();
@@ -78,11 +88,12 @@ export default function DashboardPage() {
             <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
               {vehicles.map((v) => {
                 const retired = v.retiredAt !== null;
+                const r = remindersByVehicle.get(v.id);
                 return (
                   <li key={v.id}>
                     <Link
                       href={`/dashboard/vehicles/${encodeURIComponent(v.id)}`}
-                      className={`-mx-3 flex items-baseline justify-between rounded px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 ${retired ? 'opacity-60' : ''}`}
+                      className={`-mx-3 flex items-baseline justify-between gap-3 rounded px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 ${retired ? 'opacity-60' : ''}`}
                     >
                       <div>
                         <div className="font-medium">
@@ -97,9 +108,21 @@ export default function DashboardPage() {
                           {[v.year, v.make, v.model].filter(Boolean).join(' ')}
                         </div>
                       </div>
-                      {v.licensePlate && (
-                        <span className="font-mono text-xs text-zinc-500">{v.licensePlate}</span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {r && r.overdue > 0 && (
+                          <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                            {r.overdue} overdue
+                          </span>
+                        )}
+                        {r && r.overdue === 0 && r.dueSoon > 0 && (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-400">
+                            {r.dueSoon} due soon
+                          </span>
+                        )}
+                        {v.licensePlate && (
+                          <span className="font-mono text-xs text-zinc-500">{v.licensePlate}</span>
+                        )}
+                      </div>
                     </Link>
                   </li>
                 );
